@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор города и мест</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Привет, <%= user.username %>!</h1>
+            <a href="/logout" class="logout-btn">Выйти</a>
+        </header>
+
+        <h2>Выберите город</h2>
+        <select id="city-select">
+            <option value="almaty">Алматы</option>
+            <option value="astana">Астана</option>
+        </select>
+        <button onclick="getPlaces()">Показать места</button>
+
+        <h2>Доступные места</h2>
+        <ul id="places-list"></ul>
+
+        <h2>Ближайшие отели</h2>
+        <ul id="hotels-list"></ul>
+    </div>
+
+    <script src="/script.js"></script>
+</body>
+</html>
