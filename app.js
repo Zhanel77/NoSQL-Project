@@ -35,6 +35,82 @@ const CITY_COORDS = {
 // Хранилище "Корзины" для каждого пользователя
 const userCarts = {};
 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(session({
+    secret: "supersecretkey",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: "mongodb://127.0.0.1:27017/travel_app" }),
+    cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 день
+}));
+
+// EJS & Static
+app.set("view engine", "ejs");
+app.use(express.static("public"));
+
+// 📌 Страница логина
+app.get("/login", (req, res) => {
+    res.sendFile(__dirname + "/views/login.html");
+});
+
+// 📌 Страница регистрации
+app.get("/register", (req, res) => {
+    res.sendFile(__dirname + "/views/register.html");
+});
+
+// 📌 Обработка логина
+app.post("/login", async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        const user = await User.findOne({ username });
+        if (!user) {
+            return res.json({ success: false, message: "User not found" });
+        }
+
+        if (user.password !== password) {
+            return res.json({ success: false, message: "Incorrect password" });
+        }
+
+        req.session.userId = user._id; // Сохраняем ID пользователя в сессии
+        res.json({ success: true, redirect: "/" });
+
+    } catch (error) {
+        console.error("Login error:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// 📌 Обработка регистрации
+app.post("/register", async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.json({ success: false, message: "Username already taken" });
+        }
+
+        const newUser = new User({ username, password }); // Пароль сохраняется как есть
+        await newUser.save();
+
+        req.session.userId = newUser._id; // Сохраняем ID пользователя в сессии
+        res.json({ success: true, redirect: "/" });
+
+    } catch (error) {
+        console.error("Registration error:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// 📌 Выход из аккаунта
+app.get("/logout", (req, res) => {
+    req.session.destroy(() => {
+        res.redirect("/login");
+    });
+});
+
 // 📌 Главная страница
 app.get("/", async (req, res) => {
     if (!req.session.userId) return res.redirect("/login");
