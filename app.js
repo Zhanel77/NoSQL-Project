@@ -2,11 +2,15 @@ const express = require("express");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const bcrypt = require("bcryptjs");
-const User = require("./models/User"); // Модель пользователя
-require("./db"); // Подключение к базе через Mongoose
+const fetch = require("node-fetch");
+const User = require("./models/User"); // User model
+require("./db"); // Connect to MongoDB
 
 const app = express();
 const PORT = 3000;
+
+const RAPID_API_KEY = "470859ab95mshb1fe683dcdea87cp1fdbf0jsn1c856e0c3579"; // Your API key
+const API_HOST = "booking-com15.p.rapidapi.com";
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
@@ -16,18 +20,18 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: "mongodb://127.0.0.1:27017/travel_app" }),
-    cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 день
+    cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 day
 }));
 
-// Устанавливаем EJS
+// Set up EJS
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 
-// Главная страница (если юзер не залогинен — редирект)
+// Home page (redirects if not logged in)
 app.get("/", async (req, res) => {
     if (!req.session.userId) return res.redirect("/login");
 
-    const user = await User.findById(req.session.userId); // Получаем пользователя из базы
+    const user = await User.findById(req.session.userId);
     if (!user) {
         req.session.destroy();
         return res.redirect("/login");
@@ -36,46 +40,112 @@ app.get("/", async (req, res) => {
     res.render("index", { user });
 });
 
-// Регистрация
+// 📌 Registration
 app.get("/register", (req, res) => res.render("register"));
 app.post("/register", async (req, res) => {
     try {
         const { username, password } = req.body;
         const existingUser = await User.findOne({ username });
-        if (existingUser) return res.send("Такой пользователь уже существует!");
-        
-        const user = new User({ username, password });
+
+        if (existingUser) {
+            return res.json({ success: false, message: "This username is already taken!" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = new User({ username, password: hashedPassword });
         await user.save();
-        
-        req.session.userId = user._id; // Сохраняем только userId в сессии
-        res.redirect("/");
+
+        req.session.userId = user._id;
+        return res.json({ success: true, message: "Registration successful!", redirect: "/" });
     } catch (err) {
-        res.send("Ошибка при регистрации");
+        return res.json({ success: false, message: "Error during registration!" });
     }
 });
 
-// Логин
+// 📌 Login
 app.get("/login", (req, res) => res.render("login"));
 app.post("/login", async (req, res) => {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-        return res.send("Неправильный логин или пароль!");
+        return res.json({ success: false, message: "Incorrect username or password!" });
     }
 
-    req.session.userId = user._id; // Сохраняем userId в сессии
-    res.redirect("/");
+    req.session.userId = user._id;
+    return res.json({ success: true, message: "Login successful!", redirect: "/" });
 });
 
-// Выход
+// 📌 Logout
 app.get("/logout", (req, res) => {
     req.session.destroy(() => {
         res.redirect("/login");
     });
 });
 
-// Запуск сервера
+// 📌 API for getting attractions
+app.get("/get-attractions", async (req, res) => {
+    const city = req.query.city;
+    const cities = {
+        almaty: "43.238949,76.889709",
+        astana: "51.169392,71.449074"
+    };
+
+    const location = cities[city];
+    if (!location) {
+        return res.status(400).json({ error: "Invalid city" });
+    }
+
+    console.log(`Fetching attractions for city: ${city}`);
+
+    try {
+        const response = await fetch(`https://${API_HOST}/api/v1/attraction/search?location=${location}&radius=5000`, {
+            method: "GET",
+            headers: {
+                "x-rapidapi-host": API_HOST,
+                "x-rapidapi-key": RAPID_API_KEY
+            }
+        });
+
+        const data = await response.json();
+        console.log("API Response:", data);
+
+        if (!data || !data.results) {
+            return res.status(500).json({ error: "API error or empty response" });
+        }
+
+        res.json(data.results);
+    } catch (error) {
+        console.error("Error fetching attractions:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+// 📌 API for getting nearby hotels
+app.get("/get-hotels", async (req, res) => {
+    const placeId = req.query.placeId;
+    if (!placeId) {
+        return res.status(400).json({ error: "Place ID is missing" });
+    }
+
+    try {
+        const response = await fetch(`https://${API_HOST}/api/v1/hotels/search?location_id=${placeId}&radius=5000`, {
+            method: "GET",
+            headers: {
+                "x-rapidapi-host": API_HOST,
+                "x-rapidapi-key": RAPID_API_KEY
+            }
+        });
+
+        const data = await response.json();
+        res.json(data.results || []);
+    } catch (error) {
+        console.error("Error fetching hotels:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+// Start server
 app.listen(PORT, () => {
-    console.log(`Сервер запущен на http://localhost:${PORT}`);
+    console.log(`Server running at http://localhost:${PORT}`);
 });
