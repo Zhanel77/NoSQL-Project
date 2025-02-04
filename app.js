@@ -45,22 +45,21 @@ app.get("/register", (req, res) => res.render("register"));
 app.post("/register", async (req, res) => {
     try {
         const { username, password } = req.body;
-        const existingUser = await User.findOne({ username });
+        console.log("Entered password:", password); // Оригинальный пароль
 
-        if (existingUser) {
-            return res.json({ success: false, message: "This username is already taken!" });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({ username, password: hashedPassword });
+        const user = new User({ username, password }); // Сохраняем пароль без хэша
         await user.save();
+        console.log("User saved:", user);
 
         req.session.userId = user._id;
         return res.json({ success: true, message: "Registration successful!", redirect: "/" });
     } catch (err) {
+        console.error("Error during registration:", err);
         return res.json({ success: false, message: "Error during registration!" });
     }
 });
+
+
 
 // 📌 Login
 app.get("/login", (req, res) => res.render("login"));
@@ -68,13 +67,24 @@ app.post("/login", async (req, res) => {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user) {
+        console.log("User not found:", username);
+        return res.json({ success: false, message: "Incorrect username or password!" });
+    }
+
+    console.log("Stored password:", user.password);
+    console.log("Entered password:", password);
+
+    if (password !== user.password) {
         return res.json({ success: false, message: "Incorrect username or password!" });
     }
 
     req.session.userId = user._id;
-    return res.json({ success: true, message: "Login successful!", redirect: "/" });
+    req.session.save(() => {
+        res.json({ success: true, message: "Login successful!", redirect: "/" });
+    });
 });
+
 
 // 📌 Logout
 app.get("/logout", (req, res) => {

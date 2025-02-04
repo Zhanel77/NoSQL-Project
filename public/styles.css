@@ -1,55 +1,130 @@
-body {
-    font-family: Arial, sans-serif;
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* General Styles */
+* {
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
     text-align: center;
-}
-
-.container {
-    max-width: 600px;
-    margin: 50px auto;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     padding: 20px;
-    background: white;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
 }
 
-h1, h2 {
+/* Container Styling */
+.container {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.15);
+    max-width: 650px; /* Increased Width */
+    width: 95%;
+    transition: all 0.3s ease-in-out;
+}
+
+.container:hover {
+    box-shadow: 0px 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+h1 {
+    font-size: 26px; /* Increased Font Size */
+    font-weight: 600;
     color: #333;
 }
 
-select, button {
-    margin: 10px 0;
-    padding: 10px;
-    font-size: 16px;
+/* Logout Button */
+.logout-btn {
+    background: linear-gradient(135deg, #ff4b5c, #ff6b81);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    transition: 0.3s;
 }
 
+.logout-btn:hover {
+    background: linear-gradient(135deg, #ff6b81, #ff4b5c);
+}
+
+/* Dropdown Styling */
 select {
     width: 100%;
+    padding: 14px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-size: 18px;
+    background: white;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
+select:hover {
+    border-color: #007BFF;
+}
+
+/* Button Styling */
 button {
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    cursor: pointer;
     width: 100%;
-    border-radius: 5px;
+    padding: 14px;
+    margin-top: 20px;
+    font-size: 18px; /* Bigger Font */
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, #007BFF, #0056b3);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    transition: 0.3s;
 }
 
 button:hover {
-    background-color: #0056b3;
+    background: linear-gradient(135deg, #0056b3, #003e80);
+    box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+/* Lists Styling */
+h2 {
+    margin-top: 25px;
+    font-size: 20px;
+    color: #444;
 }
 
 ul {
-    list-style-type: none;
+    list-style: none;
     padding: 0;
+    margin-top: 15px;
 }
 
 li {
-    background: #ddd;
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 5px;
+    background: #f1f1f1;
+    padding: 14px;
+    margin: 10px 0;
+    border-radius: 10px;
+    font-size: 18px;
+    transition: all 0.3s;
+}
+
+li:hover {
+    background: #e0e0e0;
+    transform: scale(1.03);
 }
