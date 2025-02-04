@@ -7,9 +7,8 @@
     padding: 0;
     box-sizing: border-box;
 }
-
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #6e8efb, #a777e3);
     text-align: center;
     margin: 0;
@@ -17,22 +16,24 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 0;
 }
+
+
 
 /* Container Styling */
 .container {
     background: white;
-    padding: 40px;
-    border-radius: 15px;
-    box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.15);
-    max-width: 650px; /* Increased Width */
-    width: 95%;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 90%;
     transition: all 0.3s ease-in-out;
 }
 
 .container:hover {
-    box-shadow: 0px 15px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.15);
 }
 
 /* Header */
@@ -40,23 +41,22 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 h1 {
-    font-size: 26px; /* Increased Font Size */
+    font-size: 22px;
     font-weight: 600;
     color: #333;
 }
 
-/* Logout Button */
 .logout-btn {
     background: linear-gradient(135deg, #ff4b5c, #ff6b81);
     color: white;
-    padding: 10px 15px;
-    border-radius: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
     text-decoration: none;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
     transition: 0.3s;
 }
@@ -68,10 +68,10 @@ h1 {
 /* Dropdown Styling */
 select {
     width: 100%;
-    padding: 14px;
+    padding: 12px;
     border: 2px solid #ddd;
-    border-radius: 10px;
-    font-size: 18px;
+    border-radius: 8px;
+    font-size: 16px;
     background: white;
     cursor: pointer;
     transition: 0.3s;
@@ -84,47 +84,47 @@ select:hover {
 /* Button Styling */
 button {
     width: 100%;
-    padding: 14px;
-    margin-top: 20px;
-    font-size: 18px; /* Bigger Font */
+    padding: 12px;
+    margin-top: 15px;
+    font-size: 16px;
     font-weight: 600;
     color: white;
     background: linear-gradient(135deg, #007BFF, #0056b3);
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
     transition: 0.3s;
 }
 
 button:hover {
     background: linear-gradient(135deg, #0056b3, #003e80);
-    box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* Lists Styling */
 h2 {
-    margin-top: 25px;
-    font-size: 20px;
+    margin-top: 20px;
+    font-size: 18px;
     color: #444;
 }
 
 ul {
     list-style: none;
     padding: 0;
-    margin-top: 15px;
+    margin-top: 10px;
 }
 
 li {
     background: #f1f1f1;
-    padding: 14px;
-    margin: 10px 0;
-    border-radius: 10px;
-    font-size: 18px;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+    font-size: 16px;
     transition: all 0.3s;
 }
 
 li:hover {
     background: #e0e0e0;
-    transform: scale(1.03);
+    transform: scale(1.02);
 }
