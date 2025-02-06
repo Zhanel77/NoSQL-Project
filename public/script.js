@@ -5,29 +5,65 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Функция для получения мест через сервер
     async function getPlaces() {
-        const city = citySelect.value;
-        placesList.innerHTML = "<li>Загрузка мест...</li>";
-        hotelsList.innerHTML = "";
-
+        const city = document.getElementById("city-select").value;
+        const placesList = document.getElementById("places-list");
+        placesList.innerHTML = "<li>Loading places...</li>";
+    
         try {
             const response = await fetch(`/get-attractions?city=${city}`);
             const data = await response.json();
-
+    
             placesList.innerHTML = "";
             if (data.length === 0) {
-                placesList.innerHTML = "<li>Нет доступных мест</li>";
+                placesList.innerHTML = "<li>No available places</li>";
                 return;
             }
-
+    
             data.forEach((place) => {
                 const li = document.createElement("li");
-                li.textContent = place.name;
-                li.onclick = () => getHotels(place.id);
+                li.style.display = "flex";
+                li.style.flexDirection = "column";
+                li.style.alignItems = "center";
+                li.style.margin = "10px";
+                li.style.padding = "10px";
+                li.style.borderRadius = "10px";
+                li.style.backgroundColor = "#f9f9f9";
+                li.style.boxShadow = "2px 2px 10px rgba(0, 0, 0, 0.1)";
+                li.style.textAlign = "center";
+                li.style.width = "200px";
+    
+                // Добавление фото
+                if (place.photo) {
+                    const img = document.createElement("img");
+                    img.src = place.photo;
+                    img.alt = place.name;
+                    img.style.width = "100%";
+                    img.style.height = "150px";
+                    img.style.objectFit = "cover";
+                    img.style.borderRadius = "10px";
+                    li.appendChild(img);
+                }
+    
+                // Добавление названия
+                const text = document.createElement("p");
+                text.textContent = place.name;
+                text.style.fontWeight = "bold";
+                text.style.margin = "10px 0 5px";
+                li.appendChild(text);
+    
+                // Добавление рейтинга (если есть)
+                if (place.rating) {
+                    const rating = document.createElement("p");
+                    rating.textContent = `⭐ ${place.rating}`;
+                    rating.style.color = "#FFD700";
+                    li.appendChild(rating);
+                }
+    
                 placesList.appendChild(li);
             });
         } catch (error) {
-            console.error("Ошибка при загрузке мест:", error);
-            placesList.innerHTML = "<li>Ошибка загрузки мест</li>";
+            console.error("Error loading places:", error);
+            placesList.innerHTML = "<li>Error loading places</li>";
         }
     }
 
