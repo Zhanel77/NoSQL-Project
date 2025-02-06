@@ -49,6 +49,37 @@ app.use(session({
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 
+app.post("/save-places", async (req, res) => {
+    const { userId } = req.session;
+    const { places } = req.body; // places - это массив объектов с местами
+
+    if (!userId || !places || places.length === 0) {
+        return res.status(400).json({ error: "Invalid request" });
+    }
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Добавляем отладку
+        console.log("Selected places to save:", places);
+
+        // Добавление мест в поле selectedPlaces пользователя
+        user.selectedPlaces = places;
+        await user.save();
+
+        res.json({ success: true, message: "Places saved successfully" });
+    } catch (error) {
+        console.error("Error saving places:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+
+
+
 // 📌 Страница логина
 app.get("/login", (req, res) => {
     res.sendFile(__dirname + "/views/login.html");

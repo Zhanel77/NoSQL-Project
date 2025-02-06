@@ -2,7 +2,47 @@ document.addEventListener("DOMContentLoaded", function () {
     const citySelect = document.getElementById("city-select");
     const placesList = document.getElementById("places-list");
     const hotelsList = document.getElementById("hotels-list");
+    const saveButton = document.getElementById("save-places-btn");
+    let selectedPlaces = [];
 
+    // Добавление места в выбранные
+    document.getElementById("places-list").addEventListener("click", function (e) {
+        if (e.target.tagName === "LI") {
+            const place = e.target.dataset.placeId; // Обратите внимание, что используется ID места
+            if (selectedPlaces.includes(place)) {
+                selectedPlaces = selectedPlaces.filter(item => item !== place); // Убираем, если уже выбрано
+                e.target.style.backgroundColor = "#f9f9f9";
+            } else {
+                selectedPlaces.push(place); // Добавляем, если не выбрано
+                e.target.style.backgroundColor = "#d0eaff";
+            }
+        }
+    });
+
+    // Сохранение выбранных мест
+    saveButton.addEventListener("click", async function () {
+        if (selectedPlaces.length === 0) {
+            alert("Please select at least one place.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/save-places", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ places: selectedPlaces })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert("Places saved successfully!");
+            } else {
+                alert("Error saving places.");
+            }
+        } catch (error) {
+            console.error("Error saving places:", error);
+        }
+    });
     // Функция для получения мест через сервер
     async function getPlaces() {
         const city = document.getElementById("city-select").value;
