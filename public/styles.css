@@ -35,15 +35,14 @@ body {
     background-color: #d0eaff;
 }
 
-
-
 /* Container Styling */
 .container {
     background: white;
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
-    max-width: 500px;
+    max-width: 700px;
+    margin-top: 40px; 
     width: 90%;
     transition: all 0.3s ease-in-out;
 }
@@ -143,4 +142,48 @@ li {
 li:hover {
     background: #e0e0e0;
     transform: scale(1.02);
+}
+
+
+/*NEW CSS*/
+
+#places-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Three columns */
+    gap: 15px; /* Space between items */
+    padding: 20px 0;
+}
+
+#places-list li {
+    list-style: none;
+    background-color: #ffffff; /* Белый фон */
+    padding: 25px; /* Увеличенный отступ для большего фона */
+    border-radius: 12px; /* Скругленные углы */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Увеличенная тень для глубины */
+    text-align: center;
+    transition: transform 0.3s, background-color 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    max-width: 330px; /* Максимальная ширина для каждого элемента */
+    height: 100%;
+}
+
+#places-list img {
+    width: 100%;
+    height: 200px; /* Высота изображений фиксированная */
+    border-radius: 8px; /* Скругленные углы для изображений */
+    object-fit: cover;
+}
+
+#places-list .place-name {
+    font-size: 20px; /* Размер шрифта увеличен */
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#places-list .rating {
+    color: #ffd700; /* Золотой цвет для звезд */
+    font-size: 18px;
+    margin-top: 5px;
 }
