@@ -9,13 +9,18 @@ document.addEventListener("DOMContentLoaded", function () {
         // Проверяем, был ли клик на элемент списка или его содержимое
         const placeElement = e.target.closest("li"); // Для захвата клика на текст или картинку
         if (placeElement && placeElement.tagName === "LI") {
-            const place = placeElement.dataset.placeId;
-            if (selectedPlaces.includes(place)) {
-                selectedPlaces = selectedPlaces.filter(item => item !== place); // Убираем, если уже выбрано
-                placeElement.style.backgroundColor = "#f9f9f9"; // Сбрасываем стиль
+            const place = {
+                id: placeElement.dataset.placeId,
+                lat: parseFloat(placeElement.dataset.lat), // Добавляем координаты
+                lng: parseFloat(placeElement.dataset.lng)
+            };
+            const index = selectedPlaces.findIndex(p => p.id === place.id);
+            if (index !== -1) {
+                selectedPlaces.splice(index, 1);
+                placeElement.style.backgroundColor = "#f9f9f9";
             } else {
-                selectedPlaces.push(place); // Добавляем, если не выбрано
-                placeElement.style.backgroundColor = "#d0eaff"; // Стиль выбранного
+                selectedPlaces.push(place);
+                placeElement.style.backgroundColor = "#d0eaff";
             }
         }
     });

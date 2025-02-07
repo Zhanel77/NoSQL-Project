@@ -207,6 +207,54 @@ app.get("/get-attractions", async (req, res) => {
     }
 });
 
+// 📌 API: Получение ближайших отелей по координатам центра
+app.get("/get-hotels-by-center", async (req, res) => {
+    const { userId } = req.session;
+    if (!userId) return res.status(400).json({ error: "User not logged in" });
+
+    const user = await User.findById(userId);
+    if (!user || !user.centerCoords) {
+        return res.status(404).json({ error: "User or center coordinates not found" });
+    }
+
+    const { lat, lng } = user.centerCoords;
+
+    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=5000&type=lodging&key=${GOOGLE_API_KEY}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.error_message) {
+            return res.status(500).json({ error: `Google API error: ${data.error_message}` });
+        }
+
+        if (data.results && data.results.length > 0) {
+            // Вычисление расстояний и сортировка отелей
+            const hotels = data.results.map(hotel => {
+                const distance = getDistance(lat, lng, hotel.geometry.location.lat, hotel.geometry.location.lng);
+                return {
+                    name: hotel.name,
+                    rating: hotel.rating || "No rating",
+                    address: hotel.vicinity,
+                    distance: distance.toFixed(2) + " km",
+                    photo: hotel.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${hotel.photos[0].photo_reference}&key=${GOOGLE_API_KEY}` : null
+                };
+            });
+
+            hotels.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+
+            return res.json(hotels);
+        } else {
+            return res.status(404).json({ message: "No hotels found in this area" });
+        }
+    } catch (error) {
+        console.error("Error fetching hotels:", error);
+        return res.status(500).json({ error: "Server error" });
+    }
+});
+
+
 // 📌 API: Добавление места в "Корзину"
 app.post("/add-to-cart", (req, res) => {
     const { userId } = req.session;
