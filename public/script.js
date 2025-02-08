@@ -292,30 +292,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 hotelsList.appendChild(li);
             });
     
-            // Обработчик сохранения выбранного отеля
-            saveHotelBtn.addEventListener("click", async function () {
-                if (!selectedHotel) {
-                    alert("Please select a hotel first.");
-                    return;
-                }
-    
-                try {
-                    const response = await fetch("/save-hotel", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ hotel: selectedHotel })
-                    });
-    
-                    const data = await response.json();
-                    if (data.success) {
-                        alert("Hotel saved successfully!");
-                    } else {
-                        alert("Error saving hotel.");
-                    }
-                } catch (error) {
-                    console.error("Error saving hotel:", error);
-                }
-            });
+             
     
         } catch (error) {
             console.error("Error displaying hotels:", error);
