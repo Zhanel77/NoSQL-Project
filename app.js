@@ -379,7 +379,50 @@ app.get("/get-hotels", async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 });
+app.post("/save-hotel", async (req, res) => {
+    const { userId } = req.session;
+    const { hotel } = req.body; // hotel - это объект с информацией об отеле
 
+    if (!userId || !hotel) {
+        return res.status(400).json({ error: "Invalid request" });
+    }
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        user.savedHotel = hotel;
+        await user.save();
+
+        res.json({ success: true, message: "Hotel saved successfully!" });
+    } catch (error) {
+        console.error("Error saving hotel:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+app.get("/get-saved-hotel", async (req, res) => {
+    const { userId } = req.session;
+    
+    if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    try {
+        const user = await User.findById(userId).select("savedHotel");
+
+        if (!user || !user.savedHotel) {
+            return res.json({ message: "No saved hotel found" });
+        }
+
+        res.json({ savedHotel: user.savedHotel });
+    } catch (error) {
+        console.error("Error retrieving saved hotel:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
 
 async function getPlaceCoordinates(placeId) {
     const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74`;

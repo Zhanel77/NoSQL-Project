@@ -195,8 +195,13 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("Request failed:", error);
         }
     }
+    
+
     async function displayHotels(hotels) {
         const hotelsList = document.getElementById("hotels-list");
+        const saveHotelBtn = document.getElementById("save-hotel-btn");
+        let selectedHotel = null; // Переменная для хранения выбранного отеля
+    
         hotelsList.innerHTML = "<li>Loading hotels...</li>";
     
         try {
@@ -208,6 +213,12 @@ document.addEventListener("DOMContentLoaded", function () {
     
             hotels.forEach((hotel) => {
                 const li = document.createElement("li");
+    
+                li.dataset.name = hotel.name;
+                li.dataset.rating = hotel.rating || "No rating";
+                li.dataset.address = hotel.address || "No address available";
+                li.dataset.distance = hotel.distance || "Unknown distance";
+                li.dataset.photo = hotel.photo || "";
     
                 li.style.display = "flex";
                 li.style.flexDirection = "column";
@@ -234,28 +245,142 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
     
                 // Добавление названия
-                const text = document.createElement("p");
-                text.textContent = hotel.name;
-                text.style.fontWeight = "bold";
-                text.style.margin = "10px 0 5px";
-                li.appendChild(text);
+                const nameText = document.createElement("p");
+                nameText.textContent = hotel.name;
+                nameText.style.fontWeight = "bold";
+                nameText.style.margin = "10px 0 5px";
+                li.appendChild(nameText);
     
                 // Добавление рейтинга (если есть)
                 if (hotel.rating) {
-                    const rating = document.createElement("p");
-                    rating.textContent = `⭐ ${hotel.rating}`;
-                    rating.style.color = "#FFD700";
-                    li.appendChild(rating);
+                    const ratingText = document.createElement("p");
+                    ratingText.textContent = `⭐ ${hotel.rating}`;
+                    ratingText.style.color = "#FFD700";
+                    li.appendChild(ratingText);
                 }
+    
+                // Добавление адреса
+                const addressText = document.createElement("p");
+                addressText.textContent = hotel.address;
+                addressText.style.fontSize = "14px";
+                addressText.style.color = "#666";
+                li.appendChild(addressText);
+    
+                // Добавление расстояния
+                const distanceText = document.createElement("p");
+                distanceText.textContent = `📍 ${hotel.distance}`;
+                distanceText.style.fontSize = "14px";
+                distanceText.style.color = "#333";
+                li.appendChild(distanceText);
+    
+                // Обработчик клика для выбора отеля
+                li.addEventListener("click", function () {
+                    document.querySelectorAll("#hotels-list li").forEach(el => el.style.backgroundColor = "#f9f9f9");
+                    li.style.backgroundColor = "#d0eaff"; // Подсветка выбранного отеля
+    
+                    selectedHotel = {
+                        name: li.dataset.name,
+                        rating: li.dataset.rating,
+                        address: li.dataset.address,
+                        distance: li.dataset.distance,
+                        photo: li.dataset.photo
+                    };
+    
+                    saveHotelBtn.style.display = "block"; // Показываем кнопку сохранения
+                });
     
                 hotelsList.appendChild(li);
             });
+    
+            // Обработчик сохранения выбранного отеля
+            saveHotelBtn.addEventListener("click", async function () {
+                if (!selectedHotel) {
+                    alert("Please select a hotel first.");
+                    return;
+                }
+    
+                try {
+                    const response = await fetch("/save-hotel", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ hotel: selectedHotel })
+                    });
+    
+                    const data = await response.json();
+                    if (data.success) {
+                        alert("Hotel saved successfully!");
+                    } else {
+                        alert("Error saving hotel.");
+                    }
+                } catch (error) {
+                    console.error("Error saving hotel:", error);
+                }
+            });
+    
         } catch (error) {
             console.error("Error displaying hotels:", error);
             hotelsList.innerHTML = "<li>Error displaying hotels</li>";
         }
     }
+    
 
+    let selectedHotel = null;
+
+    document.getElementById("hotels-list").addEventListener("click", function (e) {
+        const hotelElement = e.target.closest("li"); // Определяем, был ли клик на отеле
+
+        if (hotelElement) {
+            selectedHotel = {
+                name: hotelElement.dataset.name,
+                rating: hotelElement.dataset.rating,
+                address: hotelElement.dataset.address,
+                distance: hotelElement.dataset.distance,
+                photo: hotelElement.dataset.photo
+            };
+
+            document.getElementById("save-hotel-btn").style.display = "block"; // Показываем кнопку
+        }
+    });
+
+    document.getElementById("save-hotel-btn").addEventListener("click", async function () {
+        if (!selectedHotel) {
+            alert("Please select a hotel first.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/save-hotel", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ hotel: selectedHotel })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert("Hotel saved successfully!");
+            } else {
+                alert("Error saving hotel.");
+            }
+        } catch (error) {
+            console.error("Error saving hotel:", error);
+        }
+    });
+
+    async function loadSavedHotel() {
+        try {
+            const response = await fetch("/get-saved-hotel");
+            const data = await response.json();
+    
+            if (data.savedHotel) {
+                alert(`Your saved hotel: ${data.savedHotel.name}`);
+            }
+        } catch (error) {
+            console.error("Error loading saved hotel:", error);
+        }
+    }
+    
+    document.addEventListener("DOMContentLoaded", loadSavedHotel);
+    
 
 
 
