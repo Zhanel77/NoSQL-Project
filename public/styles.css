@@ -71,7 +71,7 @@ body {
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
-    max-width: 700px;
+    max-width: 800px;
     margin-top: 40px; 
     width: 90%;
     transition: all 0.3s ease-in-out;
@@ -213,6 +213,49 @@ li:hover {
 }
 
 #places-list .rating {
+    color: #ffd700; /* Золотой цвет для звезд */
+    font-size: 18px;
+    margin-top: 5px;
+}
+
+
+/* NEW CSS for hotels-list */
+#hotels-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Три колонки */
+    gap: 15px; /* Расстояние между элементами */
+    padding: 20px 0; /* Отступ сверху и снизу */
+}
+
+#hotels-list li {
+    list-style: none;
+    background-color: #ffffff; /* Белый фон */
+    padding: 15px; /* Увеличенный отступ для большего фона */
+    border-radius: 12px; /* Скругленные углы */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Тень для глубины */
+    text-align: center;
+    transition: transform 0.3s, background-color 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    max-width: 330px; /* Максимальная ширина для каждого элемента */
+    height: 100%;
+}
+
+#hotels-list img {
+    width: 100%;
+    height: 200px; /* Фиксированная высота изображений */
+    border-radius: 8px; /* Скругленные углы для изображений */
+    object-fit: cover; /* Обрезка изображения для заполнения контейнера */
+}
+
+#hotels-list .hotel-name {
+    font-size: 20px; /* Размер шрифта увеличен */
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#hotels-list .rating {
     color: #ffd700; /* Золотой цвет для звезд */
     font-size: 18px;
     margin-top: 5px;
