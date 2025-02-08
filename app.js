@@ -4,6 +4,7 @@ const MongoStore = require("connect-mongo");
 const fetch = require("node-fetch");
 const User = require("./models/User");
 require("./db");
+const axios = require('axios')
 
 const app = express();
 const PORT = 3000;
@@ -76,6 +77,85 @@ app.post("/save-places", async (req, res) => {
     }
 });
 
+app.post("/get-hotels-by-coordinates", async (req, res) => {
+    const { latitude, longitude } = req.body;
+  
+    if (!latitude || !longitude) {
+      return res.status(400).json({ error: "Invalid coordinates" });
+    }
+  
+    console.log(`Requesting API with coordinates: Latitude=${latitude}, Longitude=${longitude}`);
+  
+    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=5000&type=lodging&key=${GOOGLE_API_KEY}`;
+  
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+  
+      console.log("Response from Google Places API:", data);
+  
+      if (data.error_message) {
+        console.error("Google Places API error:", data.error_message);
+        return res.status(500).json({ error: `Google API error: ${data.error_message}` });
+      }
+  
+      if (data.results && data.results.length > 0) {
+        // Функция вычисления расстояния между координатами (формула Хаверсина)
+        const getDistance = (lat1, lon1, lat2, lon2) => {
+          const toRad = (value) => (value * Math.PI) / 180;
+          const R = 6371; // Радиус Земли в километрах
+          const dLat = toRad(lat2 - lat1);
+          const dLon = toRad(lon2 - lon1);
+          const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          return R * c;
+        };
+  
+        // Преобразуем данные и добавляем расстояние до каждого отеля
+        const hotels = data.results.map(hotel => {
+          const distance = getDistance(latitude, longitude, hotel.geometry.location.lat, hotel.geometry.location.lng);
+          return {
+            name: hotel.name,
+            rating: hotel.rating || "No rating",
+            address: hotel.vicinity,
+            distance: distance.toFixed(2) + " km",
+            photo: hotel.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${hotel.photos[0].photo_reference}&key=${GOOGLE_API_KEY}` : null
+          };
+        });
+  
+        // Сортируем массив по расстоянию (самые ближние - первыми)
+        hotels.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+  
+        return res.json(hotels);
+      } else {
+        return res.status(404).json({ message: "No hotels found in this area" });
+      }
+    } catch (error) {
+      console.error("Error fetching hotels:", error);
+      return res.status(500).json({ error: "Server error" });
+    }
+  });
+
+
+app.get("/get-place-coordinates", async (req, res) => {
+    const { placeId } = req.query;
+    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74`;
+
+    try {
+        const response = await axios.get(url);
+        if (response.data.status !== "OK") {
+            return res.status(400).json({ error: response.data.error_message });
+        }
+
+        res.json(response.data.result.geometry.location);
+    } catch (error) {
+        console.error("API request error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
 
 
 app.get("/get-selected-places", async (req, res) => {
@@ -299,6 +379,26 @@ app.get("/get-hotels", async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 });
+
+
+async function getPlaceCoordinates(placeId) {
+    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74`;
+
+    try {
+        const response = await axios.get(url); 
+
+        if (response.data.status !== "OK") {
+            console.error("API Error:", response.data.status, response.data.error_message);
+            return null;
+        }
+
+        const location = response.data.result.geometry.location;
+        console.log(`Latitude: ${location.lat}, Longitude: ${location.lng}`);
+        return location;
+    } catch (error) {
+        console.error('Error fetching place details:', error);
+    }
+}
 
 // 📌 Запуск сервера
 app.listen(PORT, () => {

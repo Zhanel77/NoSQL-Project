@@ -1,5 +1,3 @@
-const axios = require('axios');
-
 document.addEventListener("DOMContentLoaded", function () {
     const citySelect = document.getElementById("city-select");
     const placesList = document.getElementById("places-list");
@@ -132,54 +130,132 @@ document.addEventListener("DOMContentLoaded", function () {
             return [];
         }
     }
-    
     async function getPlaceCoordinates(placeId) {
-        const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74`;
-
         try {
-            const response = await axios.get(url); 
-
-            if (response.data.status !== "OK") {
-                console.error("API Error:", response.data.status, response.data.error_message);
-                return null;
-            }
-
-            const location = response.data.result.geometry.location;
-            console.log(`Latitude: ${location.lat}, Longitude: ${location.lng}`);
-            return location;
+            const response = await fetch(`/get-place-coordinates?placeId=${placeId}`);
+            const data = await response.json(); 
+            return data;
         } catch (error) {
-            console.error('Error fetching place details:', error);
+            console.error("Ошибка при получении координат:", error);
         }
     }
-    
-    function calculateCenter(coords) {
-        if (coords.length === 0) return null;
-    
-        let sumLat = 0, sumLng = 0;
-    
-        coords.forEach(coord => {
-            sumLat += coord.lat;
-            sumLng += coord.lng;
-        });
-    
-        return {
-            lat: sumLat / coords.length,
-            lng: sumLng / coords.length
-        };
-    }
-    
+     
+  
     // Функция для получения отелей по ID места
     async function getHotels() { 
-        const idsOfPlaces = await getSelectedPlaceIds();
-        console.log(getPlaceCoordinates(idsOfPlaces[0]))
-        let centerLat 
-        let centerLng
-        idsOfPlaces.forEach((id) => {
-            coords = getPlaceCoordinates(id)
-            centerLat += coords[0]
-            centerLng += coords[1]
-        })
-        console.log(`Lat: ${centerLat} |||| Lng: ${centerLng}`)
+        const idsOfPlaces = await getSelectedPlaceIds(); 
+        
+        // Получаем массив координат для всех мест (дожидаемся выполнения всех запросов)
+        const coordsArray = await Promise.all(idsOfPlaces.map(async (id) => {
+            return getPlaceCoordinates(id);
+        })); 
+        
+        // Вычисляем центр (усредняем координаты)
+        let centerLat = 0;
+        let centerLng = 0;
+        let count = 0;
+    
+        coordsArray.forEach(coords => {
+            if (coords) { // Проверяем, что coords не null
+                centerLat += coords.lat;
+                centerLng += coords.lng;
+                count++;
+            }
+        });
+    
+        if (count > 0) {
+            centerLat /= count;
+            centerLng /= count;
+        }
+    
+        if (!centerLat || !centerLng) {
+            console.error("Invalid coordinates for hotels search.");
+            return;
+        }
+    
+        try {
+            // Отправляем запрос к серверу
+            const response = await fetch("/get-hotels-by-coordinates", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ latitude: centerLat, longitude: centerLng })
+            });
+    
+            const hotels = await response.json();
+    
+            if (response.ok) {
+                console.log("Hotels found:", hotels);
+                displayHotels(hotels); // Функция для отображения списка отелей
+            } else {
+                console.error("Error fetching hotels:", hotels.error || hotels.message);
+            }
+        } catch (error) {
+            console.error("Request failed:", error);
+        }
+    }
+    async function displayHotels(hotels) {
+        const hotelsList = document.getElementById("hotels-list");
+        hotelsList.innerHTML = "<li>Loading hotels...</li>";
+    
+        try {
+            hotelsList.innerHTML = "";
+            if (hotels.length === 0) {
+                hotelsList.innerHTML = "<li>No available hotels</li>";
+                return;
+            }
+    
+            hotels.forEach((hotel) => {
+                const li = document.createElement("li");
+    
+                li.style.display = "flex";
+                li.style.flexDirection = "column";
+                li.style.alignItems = "center";
+                li.style.margin = "10px";
+                li.style.padding = "10px";
+                li.style.borderRadius = "10px";
+                li.style.backgroundColor = "#f9f9f9";
+                li.style.boxShadow = "2px 2px 10px rgba(0, 0, 0, 0.1)";
+                li.style.textAlign = "center";
+                li.style.width = "200px";
+                li.style.cursor = "pointer"; // Указатель на элемент, чтобы показать интерактивность
+    
+                // Добавление фото
+                if (hotel.photo) {
+                    const img = document.createElement("img");
+                    img.src = hotel.photo;
+                    img.alt = hotel.name;
+                    img.style.width = "100%";
+                    img.style.height = "150px";
+                    img.style.objectFit = "cover";
+                    img.style.borderRadius = "10px";
+                    li.appendChild(img);
+                }
+    
+                // Добавление названия
+                const text = document.createElement("p");
+                text.textContent = hotel.name;
+                text.style.fontWeight = "bold";
+                text.style.margin = "10px 0 5px";
+                li.appendChild(text);
+    
+                // Добавление рейтинга (если есть)
+                if (hotel.rating) {
+                    const rating = document.createElement("p");
+                    rating.textContent = `⭐ ${hotel.rating}`;
+                    rating.style.color = "#FFD700";
+                    li.appendChild(rating);
+                }
+    
+                hotelsList.appendChild(li);
+            });
+        } catch (error) {
+            console.error("Error displaying hotels:", error);
+            hotelsList.innerHTML = "<li>Error displaying hotels</li>";
+        }
+    }
+
 
 
 
@@ -202,7 +278,7 @@ document.addEventListener("DOMContentLoaded", function () {
         //     console.error("Ошибка при загрузке отелей:", error);
         //     hotelsList.innerHTML = "<li>Ошибка загрузки отелей</li>";
         // }
-    } 
+    // } 
     window.getSelectedPlaceIds = getSelectedPlaceIds
     window.getPlaces = getPlaces;   
     window.getHotels = getHotels;
