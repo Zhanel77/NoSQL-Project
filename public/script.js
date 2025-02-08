@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Исправленный рендеринг мест
             if (dataPlaces.selectedPlaces && dataPlaces.selectedPlaces.length > 0) {
                 hasData = true;
-                savedPlacesList.innerHTML = ""; 
+                savedPlacesList.innerHTML = "";  
                 dataPlaces.selectedPlaces.forEach(place => {
                     const li = document.createElement("li");
                     li.textContent = place.name || "Unknown Place";
@@ -96,6 +96,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
  
+    
 
     // Функция для получения мест через сервер
     async function getPlaces() {
@@ -176,6 +177,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return [];
         }
     }
+    
     async function getPlaceCoordinates(placeId) {
         try {
             const response = await fetch(`/get-place-coordinates?placeId=${placeId}`);

@@ -157,6 +157,36 @@ app.get("/get-place-coordinates", async (req, res) => {
     }
 });
 
+app.get("/get-place-details", async (req, res) => {
+    const { placeId } = req.query;
+    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74`;
+
+    try {
+        const response = await axios.get(url);
+        const data = response.data;
+
+        if (data.status !== "OK") {
+            return res.status(400).json({ error: data.error_message });
+        }
+
+        const place = data.result;
+
+        // Формируем объект с нужными данными
+        const placeDetails = {
+            name: place.name || "Unknown Place",
+            rating: place.rating || "No rating",
+            photo: place.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74` : null,
+            location: place.geometry.location
+        };
+
+        res.json(placeDetails);
+    } catch (error) {
+        console.error("API request error:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+
 
 app.get("/get-selected-places", async (req, res) => {
     const userId = req.session.userId; // Поддержка запроса через query
