@@ -1,3 +1,5 @@
+const axios = require('axios');
+
 document.addEventListener("DOMContentLoaded", function () {
     const citySelect = document.getElementById("city-select");
     const placesList = document.getElementById("places-list");
@@ -132,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     
     async function getPlaceCoordinates(placeId) {
-        const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74}`;
+        const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74`;
 
         try {
             const response = await axios.get(url); 
@@ -149,10 +151,37 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error('Error fetching place details:', error);
         }
     }
+    
+    function calculateCenter(coords) {
+        if (coords.length === 0) return null;
+    
+        let sumLat = 0, sumLng = 0;
+    
+        coords.forEach(coord => {
+            sumLat += coord.lat;
+            sumLng += coord.lng;
+        });
+    
+        return {
+            lat: sumLat / coords.length,
+            lng: sumLng / coords.length
+        };
+    }
+    
     // Функция для получения отелей по ID места
     async function getHotels() { 
         const idsOfPlaces = await getSelectedPlaceIds();
-        console.log(idsOfPlaces)
+        console.log(getPlaceCoordinates(idsOfPlaces[0]))
+        let centerLat 
+        let centerLng
+        idsOfPlaces.forEach((id) => {
+            coords = getPlaceCoordinates(id)
+            centerLat += coords[0]
+            centerLng += coords[1]
+        })
+        console.log(`Lat: ${centerLat} |||| Lng: ${centerLng}`)
+
+
 
         // try {
         //     const response = await fetch(`/get-hotels?placeId=${placeId}`);
