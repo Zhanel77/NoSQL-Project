@@ -1,9 +1,55 @@
 document.addEventListener("DOMContentLoaded", function () {
+    const savedDataSection = document.getElementById("saved-data-section"); 
+    const savedPlacesList = document.getElementById("saved-places-list");
+    const savedHotelDiv = document.getElementById("saved-hotel");
     const citySelect = document.getElementById("city-select");
     const placesList = document.getElementById("places-list");
     const saveButton = document.getElementById("save-places-btn");
-    let selectedPlaces = [];
+    
+    let selectedPlaces = []; 
 
+    async function loadSavedData() {
+        try {
+            const responsePlaces = await fetch("/get-selected-places");
+            const dataPlaces = await responsePlaces.json();
+
+            const responseHotel = await fetch("/get-saved-hotel");
+            const dataHotel = await responseHotel.json();
+
+            let hasData = false;
+
+            // Исправленный рендеринг мест
+            if (dataPlaces.selectedPlaces && dataPlaces.selectedPlaces.length > 0) {
+                hasData = true;
+                savedPlacesList.innerHTML = ""; 
+                dataPlaces.selectedPlaces.forEach(place => {
+                    const li = document.createElement("li");
+                    li.textContent = place.name || "Unknown Place";
+                    savedPlacesList.appendChild(li);
+                });
+            }
+
+            // Исправленный рендеринг отеля
+            if (dataHotel.savedHotel) {
+                hasData = true;
+                savedHotelDiv.innerHTML = `
+                    <p><strong>${dataHotel.savedHotel.name}</strong></p>
+                    <p>⭐ ${dataHotel.savedHotel.rating || "No rating"}</p>
+                    <p>${dataHotel.savedHotel.address}</p>
+                    <p>${dataHotel.savedHotel.distance}</p>
+                    ${dataHotel.savedHotel.photo ? `<img src="${dataHotel.savedHotel.photo}">` : ""}
+                `;
+            }
+
+            if (hasData) {
+                savedDataSection.style.display = "block";
+            }
+        } catch (error) {
+            console.error("Error loading saved data:", error);
+        }
+    }
+
+    loadSavedData();
     // Добавление места в выбранные
     document.getElementById("places-list").addEventListener("click", function (e) {
         // Проверяем, был ли клик на элемент списка или его содержимое

@@ -12,7 +12,14 @@
             <h1>Welcome, <%= user.username %>!</h1>
             <a href="/logout" class="logout-btn">Log Out</a>
         </header>
-
+        <div id="saved-data-section" style="display: none;">
+            <h2>Your Saved Selections</h2>
+            <div id="saved-city"></div>
+            <h3>Saved Places:</h3>
+            <ul id="saved-places-list"></ul>
+            <h3>Saved Hotel:</h3>
+            <div id="saved-hotel"></div>
+        </div>
         <h2>Select a City</h2>
         <select id="city-select">
             <option value="almaty">Almaty</option>

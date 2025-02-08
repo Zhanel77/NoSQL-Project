@@ -423,6 +423,47 @@ app.get("/get-saved-hotel", async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 });
+app.get("/get-selected-places", async (req, res) => {
+    const userId = req.session.userId;
+    
+    if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    try {
+        const user = await User.findById(userId).select("selectedPlaces");
+
+        if (!user || user.selectedPlaces.length === 0) {
+            return res.json({ selectedPlaces: [] });
+        }
+
+        res.json({ selectedPlaces: user.selectedPlaces });
+    } catch (err) {
+        console.error("Error retrieving selected places:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+app.get("/get-saved-hotel", async (req, res) => {
+    const { userId } = req.session;
+    
+    if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    try {
+        const user = await User.findById(userId).select("savedHotel");
+
+        if (!user || !user.savedHotel) {
+            return res.json({ savedHotel: null });
+        }
+
+        res.json({ savedHotel: user.savedHotel });
+    } catch (error) {
+        console.error("Error retrieving saved hotel:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
 
 async function getPlaceCoordinates(placeId) {
     const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74`;
