@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("Error saving places:", error);
         }
     });
+ 
 
     // Функция для получения мест через сервер
     async function getPlaces() {
@@ -67,8 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             data.forEach((place) => {
                 const li = document.createElement("li");
-                
-                // Добавляем правильный ID места в атрибут data-place-id
+
                 li.dataset.placeId = place.id; // place.id — это предполагаемый уникальный идентификатор места
                 
                 li.style.display = "flex";
@@ -119,31 +119,62 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
  
-
-    // Функция для получения отелей по ID места
-    async function getHotels(placeId) {
-        hotelsList.innerHTML = "<li>Загрузка отелей...</li>";
-
-        try {
-            const response = await fetch(`/get-hotels?placeId=${placeId}`);
-            const data = await response.json();
-
-            hotelsList.innerHTML = "";
-            if (data.length === 0) {
-                hotelsList.innerHTML = "<li>Нет доступных отелей</li>";
-                return;
-            }
-
-            data.forEach((hotel) => {
-                const li = document.createElement("li");
-                li.textContent = hotel.name;
-                hotelsList.appendChild(li);
-            });
-        } catch (error) {
-            console.error("Ошибка при загрузке отелей:", error);
-            hotelsList.innerHTML = "<li>Ошибка загрузки отелей</li>";
+   
+    async function getSelectedPlaceIds() {
+        try { 
+            const response = await fetch("/get-selected-places");
+            const data = await response.json();  
+            return data.selectedPlaces; // Возвращаем массив ID
+        } catch (err) {
+            console.error("Ошибка запроса:", err);
+            return [];
         }
     }
+    
+    async function getPlaceCoordinates(placeId) {
+        const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74}`;
 
-    window.getPlaces = getPlaces;
+        try {
+            const response = await axios.get(url); 
+
+            if (response.data.status !== "OK") {
+                console.error("API Error:", response.data.status, response.data.error_message);
+                return null;
+            }
+
+            const location = response.data.result.geometry.location;
+            console.log(`Latitude: ${location.lat}, Longitude: ${location.lng}`);
+            return location;
+        } catch (error) {
+            console.error('Error fetching place details:', error);
+        }
+    }
+    // Функция для получения отелей по ID места
+    async function getHotels() { 
+        const idsOfPlaces = await getSelectedPlaceIds();
+        console.log(idsOfPlaces)
+
+        // try {
+        //     const response = await fetch(`/get-hotels?placeId=${placeId}`);
+        //     const data = await response.json();
+
+        //     hotelsList.innerHTML = "";
+        //     if (data.length === 0) {
+        //         hotelsList.innerHTML = "<li>Нет доступных отелей</li>";
+        //         return;
+        //     }
+
+        //     data.forEach((hotel) => {
+        //         const li = document.createElement("li");
+        //         li.textContent = hotel.name;
+        //         hotelsList.appendChild(li);
+        //     });
+        // } catch (error) {
+        //     console.error("Ошибка при загрузке отелей:", error);
+        //     hotelsList.innerHTML = "<li>Ошибка загрузки отелей</li>";
+        // }
+    } 
+    window.getSelectedPlaceIds = getSelectedPlaceIds
+    window.getPlaces = getPlaces;   
+    window.getHotels = getHotels;
 });
