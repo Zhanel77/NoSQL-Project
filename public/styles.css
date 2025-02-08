@@ -34,6 +34,64 @@ body {
     transform: scale(1.05);
     background-color: #d0eaff;
 }
+/* Сохраненные места */
+.saved-place-card {
+    background: #ffffff;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 250px;
+    margin: 10px auto;
+}
+
+.saved-place-img {
+    width: 100%;
+    max-height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.place-name {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 8px;
+}
+
+.place-rating {
+    color: #FFD700;
+    font-size: 14px;
+}
+
+/* Сохраненный отель */
+.saved-hotel-name {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.saved-hotel-rating {
+    color: #FFD700;
+    font-size: 16px;
+    text-align: center;
+}
+
+.saved-hotel-address,
+.saved-hotel-distance {
+    font-size: 14px;
+    text-align: center;
+    color: #555;
+}
+
+.saved-hotel-img {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
 
 .saved-list {
     list-style: none;

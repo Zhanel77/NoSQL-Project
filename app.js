@@ -155,36 +155,53 @@ app.get("/get-place-coordinates", async (req, res) => {
         console.error("API request error:", error);
         res.status(500).json({ error: "Server error" });
     }
-});
+});app.get("/get-place-details", async (req, res) => {
+    let { placeIds } = req.query;
 
-app.get("/get-place-details", async (req, res) => {
-    const { placeId } = req.query;
-    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74`;
+    if (!placeIds) {
+        return res.status(400).json({ error: "No place IDs provided." });
+    }
+
+    // Если placeIds - строка (один ID), превращаем в массив
+    if (!Array.isArray(placeIds)) {
+        placeIds = [placeIds];
+    }
 
     try {
-        const response = await axios.get(url);
-        const data = response.data;
+        const placeDetailsArray = await Promise.all(placeIds.map(async (placeId) => {
+            const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${GOOGLE_API_KEY}`;
+            
+            try {
+                const response = await axios.get(url);
+                const data = response.data;
+                
+                if (data.status !== "OK") {
+                    return { error: `Failed to get details for placeId: ${placeId}` };
+                }
 
-        if (data.status !== "OK") {
-            return res.status(400).json({ error: data.error_message });
-        }
+                const place = data.result;
+                return {
+                    id: placeId,
+                    name: place.name || "Unknown Place",
+                    rating: place.rating || "No rating",
+                    photo: place.photos 
+                        ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_API_KEY}` 
+                        : null
+                };
+                
+            } catch (err) {
+                console.error(`Error fetching details for ${placeId}:`, err);
+                return { error: `Error fetching details for ${placeId}` };
+            }
+        }));
 
-        const place = data.result;
-
-        // Формируем объект с нужными данными
-        const placeDetails = {
-            name: place.name || "Unknown Place",
-            rating: place.rating || "No rating",
-            photo: place.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74` : null,
-            location: place.geometry.location
-        };
-
-        res.json(placeDetails);
+        res.json({ places: placeDetailsArray });
     } catch (error) {
         console.error("API request error:", error);
         res.status(500).json({ error: "Server error" });
     }
 });
+
 
 
 

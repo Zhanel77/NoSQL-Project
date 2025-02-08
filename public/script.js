@@ -7,40 +7,67 @@ document.addEventListener("DOMContentLoaded", function () {
     const saveButton = document.getElementById("save-places-btn");
     
     let selectedPlaces = []; 
-
     async function loadSavedData() {
         try {
             const responsePlaces = await fetch("/get-selected-places");
             const dataPlaces = await responsePlaces.json();
-
+            const placeIds = dataPlaces.selectedPlaces;
+    
+            if (!placeIds || placeIds.length === 0) {
+                console.log("No saved places found.");
+                return;
+            }
+    
+            // Формируем корректный URL с массивом параметров
+            const queryParams = new URLSearchParams();
+            placeIds.forEach(id => queryParams.append("placeIds", id));
+    
+            // Делаем запрос с правильным форматом данных
+            const responseDetails = await fetch(`/get-place-details?${queryParams.toString()}`);
+            const placesData = await responseDetails.json();
+    
             const responseHotel = await fetch("/get-saved-hotel");
             const dataHotel = await responseHotel.json();
-
+    
             let hasData = false;
-
-            // Исправленный рендеринг мест
-            if (dataPlaces.selectedPlaces && dataPlaces.selectedPlaces.length > 0) {
+    
+            // Очистка списков перед добавлением новых данных
+            savedPlacesList.innerHTML = "";
+            savedHotelDiv.innerHTML = "";
+    
+            // Отображение сохраненных мест
+            if (placesData.places && placesData.places.length > 0) {
                 hasData = true;
-                savedPlacesList.innerHTML = "";  
-                dataPlaces.selectedPlaces.forEach(place => {
+    
+                placesData.places.forEach(place => {
+                    if (place.error) return;
+    
                     const li = document.createElement("li");
-                    li.textContent = place.name || "Unknown Place";
+                    li.classList.add("saved-place-card");
+    
+                    li.innerHTML = `
+                        ${place.photo ? `<img src="${place.photo}" alt="${place.name}" class="saved-place-img">` : ""}
+                        <p class="place-name"><strong>${place.name}</strong></p>
+                        <p class="place-rating">⭐ ${place.rating}</p>
+                    `;
+    
                     savedPlacesList.appendChild(li);
                 });
             }
-
-            // Исправленный рендеринг отеля
+    
+            // Отображение сохраненного отеля
             if (dataHotel.savedHotel) {
                 hasData = true;
+    
                 savedHotelDiv.innerHTML = `
-                    <p><strong>${dataHotel.savedHotel.name}</strong></p>
-                    <p>⭐ ${dataHotel.savedHotel.rating || "No rating"}</p>
-                    <p>${dataHotel.savedHotel.address}</p>
-                    <p>${dataHotel.savedHotel.distance}</p>
-                    ${dataHotel.savedHotel.photo ? `<img src="${dataHotel.savedHotel.photo}">` : ""}
+                    <p class="saved-hotel-name"><strong>${dataHotel.savedHotel.name}</strong></p>
+                    <p class="saved-hotel-rating">⭐ ${dataHotel.savedHotel.rating || "No rating"}</p>
+                    <p class="saved-hotel-address">${dataHotel.savedHotel.address}</p>
+                    <p class="saved-hotel-distance">${dataHotel.savedHotel.distance}</p>
+                    ${dataHotel.savedHotel.photo ? `<img src="${dataHotel.savedHotel.photo}" class="saved-hotel-img">` : ""}
                 `;
             }
-
+    
             if (hasData) {
                 savedDataSection.style.display = "block";
             }
@@ -48,7 +75,8 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("Error loading saved data:", error);
         }
     }
-
+    
+    
     loadSavedData();
     // Добавление места в выбранные
     document.getElementById("places-list").addEventListener("click", function (e) {
