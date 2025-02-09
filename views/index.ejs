@@ -12,6 +12,20 @@
             <h1>Welcome, <%= user.username %>!</h1>
             <a href="/logout" class="logout-btn">Log Out</a>
         </header>
+        
+        <section id="project-description">
+            <h2>About This Project</h2>
+            <p>
+                This is a web project designed for tourists to help them choose places to visit 
+                and find the nearest hotel to all selected locations.
+            </p>
+            <p>
+                First, select a city, then click the "Show Places" button. Choose the places you want to visit, 
+                save them, and then click "Show Hotels" to find the nearest accommodation. Finally, 
+                select a hotel and save your choice.
+            </p>
+        </section>
+        
         <div id="saved-data-section" style="display: none;">
             <h2>Your Saved Selections</h2>
             <div id="saved-city"></div>
@@ -20,6 +34,7 @@
             <h3>Saved Hotel:</h3>
             <div id="saved-hotel"></div>
         </div>
+        
         <h2>Select a City</h2>
         <select id="city-select">
             <option value="almaty">Almaty</option>
@@ -27,20 +42,17 @@
         </select>
         <button onclick="getPlaces()">Show Places</button>
         
-        
         <h2>Available Places</h2>
         <ul id="places-list"></ul>
-        <!-- Add a new button for finding hotels -->
         <button id="save-places-btn">Save Selected Places</button>
-
+        
         <button onclick="getHotels()">Show Hotels</button>
-
+        
         <h2>Nearby Hotels</h2>
         <ul id="hotels-list"></ul>  
         <button id="save-hotel-btn">Save Selected Hotel</button>
     </div>
 
     <script src="/script.js"></script>
-   
 </body>
 </html>
