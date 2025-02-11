@@ -4,10 +4,12 @@ const MongoStore = require("connect-mongo");
 const fetch = require("node-fetch");
 const User = require("./models/User");
 require("./db");
-const axios = require('axios')
+const axios = require('axios') 
+
 
 const app = express();
 const PORT = 3000;
+
 
 // Google Places API
 const GOOGLE_API_KEY = "AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74"; 
@@ -19,8 +21,14 @@ app.use(session({
     secret: "supersecretkey",
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: "mongodb://127.0.0.1:27017/travel_app" }),
-    cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 day
+    store: MongoStore.create({
+        mongoUrl: "mongodb+srv://koblandikz:Koba050105.@cluster1.j0gkf.mongodb.net/travel_app",
+        mongoOptions: {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        }
+    }),
+    cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 день
 }));
 
 // EJS & Static
@@ -35,16 +43,6 @@ const CITY_COORDS = {
 
 // Хранилище "Корзины" для каждого пользователя
 const userCarts = {};
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(session({
-    secret: "supersecretkey",
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: "mongodb://127.0.0.1:27017/travel_app" }),
-    cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 день
-}));
 
 // EJS & Static
 app.set("view engine", "ejs");
