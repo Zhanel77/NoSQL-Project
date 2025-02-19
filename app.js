@@ -7,7 +7,8 @@ const bcrypt = require("bcryptjs");
 require("dotenv").config();
 require("./db");
 const axios = require('axios') 
-
+const Place = require("./models/Place");
+const Hotel = require("./models/Hotel");
 
 const app = express();
 
@@ -32,31 +33,38 @@ app.set("view engine", "ejs");
 app.use(express.static("public"));
 
 const CITY_COORDS = {
-    almaty: { lat: 43.238949, lng: 76.889709 },
-    astana: { lat: 51.169392, lng: 71.449074 },
+    Almaty: { lat: 43.238949, lng: 76.889709 },
+    Astana: { lat: 51.169392, lng: 71.449074 },
 };
 
 const userCarts = {};
 
 app.post("/save-places", async (req, res) => {
     const { userId } = req.session;
-    const { places } = req.body; 
+    const { places } = req.body;
+
     if (!userId || !places || places.length === 0) {
         return res.status(400).json({ error: "Invalid request" });
     }
 
     try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        // console.log("Selected places to save:", places);
+        await Place.deleteMany({ userId });
 
-        // Добавление мест в поле selectedPlaces пользователя
-        user.selectedPlaces = places;
-        await user.save();
+        const placeDocs = places.map(place => ({
+            userId,
+            placeId: place.id,
+            name: place.name,
+            rating: place.rating,
+            photo: place.photo,
+            location: {
+                latitude: place.lat,
+                longitude: place.lng
+            }
+        }));
 
-        res.json({ success: true, message: "Places saved successfully" });
+        await Place.insertMany(placeDocs);
+
+        res.json({ success: true });
     } catch (error) {
         console.error("Error saving places:", error);
         res.status(500).json({ error: "Server error" });
@@ -192,25 +200,21 @@ app.get("/get-place-details", async (req, res) => {
 
 
 app.get("/get-selected-places", async (req, res) => {
-    const userId = req.session.userId; // Поддержка запроса через query
-    
+    const { userId } = req.session;
+
     if (!userId) {
-        return res.status(401).json({ error: "User not authenticated" });
+        return res.status(401).json({ error: "Not authenticated" });
     }
 
     try {
-        const user = await User.findById(userId).select("selectedPlaces");
-
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-
-        res.json({ selectedPlaces: user.selectedPlaces.map((place) => place.id) });
-    } catch (err) {
-        console.error("Ошибка:", err);
+        const places = await Place.find({ userId });
+        res.json({ selectedPlaces: places });
+    } catch (error) {
+        console.error("Error fetching places:", error);
         res.status(500).json({ error: "Server error" });
     }
 });
+
 
 // 📌 Страница логина
 app.get("/login", (req, res) => {
@@ -294,6 +298,8 @@ app.get("/get-attractions", async (req, res) => {
         return res.status(400).json({ error: "Invalid city" });
     }
 
+    
+
     const { lat, lng } = CITY_COORDS[city];
 
     const url = `https://places.googleapis.com/v1/places:searchNearby?key=${process.env.GOOGLE_API_KEY}`;
@@ -329,8 +335,13 @@ app.get("/get-attractions", async (req, res) => {
             id: place.id,
             name: place.displayName.text,
             rating: place.rating || "No rating",
-            photo: place.photos ? `https://places.googleapis.com/v1/${place.photos[0].name}/media?key=${process.env.GOOGLE_API_KEY}&maxWidthPx=400` : null
+            photo: place.photos ? `https://places.googleapis.com/v1/${place.photos[0].name}/media?key=${process.env.GOOGLE_API_KEY}&maxWidthPx=400` : null,
+            location: {
+                latitude: place.location.latitude,
+                longitude: place.location.longitude
+            }
         }));
+        
 
         res.json(places);
     } catch (error) {
@@ -412,22 +423,26 @@ app.get("/get-hotels", async (req, res) => {
 
 app.post("/save-hotel", async (req, res) => {
     const { userId } = req.session;
-    const { hotel } = req.body; // hotel - это объект с информацией об отеле
+    const { hotel } = req.body;
 
     if (!userId || !hotel) {
         return res.status(400).json({ error: "Invalid request" });
     }
 
     try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
+        await Hotel.deleteOne({ userId });
 
-        user.savedHotel = hotel;
-        await user.save();
+        const newHotel = new Hotel({
+            userId,
+            name: hotel.name,
+            rating: hotel.rating,
+            address: hotel.address,
+            distance: hotel.distance,
+            photo: hotel.photo
+        });
 
-        res.json({ success: true, message: "Hotel saved successfully!" });
+        await newHotel.save();
+        res.json({ success: true });
     } catch (error) {
         console.error("Error saving hotel:", error);
         res.status(500).json({ error: "Server error" });
@@ -436,66 +451,25 @@ app.post("/save-hotel", async (req, res) => {
 
 app.get("/get-saved-hotel", async (req, res) => {
     const { userId } = req.session;
-    
+
     if (!userId) {
-        return res.status(401).json({ error: "User not authenticated" });
+        return res.status(401).json({ error: "Not authenticated" });
     }
 
     try {
-        const user = await User.findById(userId).select("savedHotel");
+        const hotel = await Hotel.findOne({ userId });
 
-        if (!user || !user.savedHotel) {
-            return res.json({ message: "No saved hotel found" });
-        }
-
-        res.json({ savedHotel: user.savedHotel });
-    } catch (error) {
-        console.error("Error retrieving saved hotel:", error);
-        res.status(500).json({ error: "Server error" });
-    }
-});
-
-app.get("/get-selected-places", async (req, res) => {
-    const userId = req.session.userId;
-    
-    if (!userId) {
-        return res.status(401).json({ error: "User not authenticated" });
-    }
-
-    try {
-        const user = await User.findById(userId).select("selectedPlaces");
-
-        if (!user || user.selectedPlaces.length === 0) {
-            return res.json({ selectedPlaces: [] });
-        }
-
-        res.json({ selectedPlaces: user.selectedPlaces });
-    } catch (err) {
-        console.error("Error retrieving selected places:", err);
-        res.status(500).json({ error: "Server error" });
-    }
-});
-
-app.get("/get-saved-hotel", async (req, res) => {
-    const { userId } = req.session;
-    
-    if (!userId) {
-        return res.status(401).json({ error: "User not authenticated" });
-    }
-
-    try {
-        const user = await User.findById(userId).select("savedHotel");
-
-        if (!user || !user.savedHotel) {
+        if (!hotel) {
             return res.json({ savedHotel: null });
         }
 
-        res.json({ savedHotel: user.savedHotel });
+        res.json({ savedHotel: hotel });
     } catch (error) {
-        console.error("Error retrieving saved hotel:", error);
+        console.error("Error fetching hotel:", error);
         res.status(500).json({ error: "Server error" });
     }
 });
+
 
 async function getPlaceCoordinates(placeId) {
     const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74`;

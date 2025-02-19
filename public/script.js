@@ -11,54 +11,41 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const responsePlaces = await fetch("/get-selected-places");
             const dataPlaces = await responsePlaces.json();
-            const placeIds = dataPlaces.selectedPlaces;
+            const places = dataPlaces.selectedPlaces;
     
-            if (!placeIds || placeIds.length === 0) {
+            if (!places || places.length === 0) {
                 console.log("No saved places found.");
-                return;
-            }
+            } else {
+                const queryParams = new URLSearchParams();
+                const placeIds = places.map(p => p.placeId); // Вытаскиваем placeId
     
-            // Формируем корректный URL с массивом параметров
-            const queryParams = new URLSearchParams();
-            placeIds.forEach(id => queryParams.append("placeIds", id));
+                placeIds.forEach(id => queryParams.append("placeIds", id));
     
-            // Делаем запрос с правильным форматом данных
-            const responseDetails = await fetch(`/get-place-details?${queryParams.toString()}`);
-            const placesData = await responseDetails.json();
+                const responseDetails = await fetch(`/get-place-details?${queryParams.toString()}`);
+                const placesData = await responseDetails.json();
     
-            const responseHotel = await fetch("/get-saved-hotel");
-            const dataHotel = await responseHotel.json();
-    
-            let hasData = false;
-    
-            // Очистка списков перед добавлением новых данных
-            savedPlacesList.innerHTML = "";
-            savedHotelDiv.innerHTML = "";
-    
-            // Отображение сохраненных мест
-            if (placesData.places && placesData.places.length > 0) {
-                hasData = true;
+                savedPlacesList.innerHTML = "";
     
                 placesData.places.forEach(place => {
                     if (place.error) return;
     
                     const li = document.createElement("li");
                     li.classList.add("saved-place-card");
-    
                     li.innerHTML = `
                         ${place.photo ? `<img src="${place.photo}" alt="${place.name}" class="saved-place-img">` : ""}
                         <p class="place-name"><strong>${place.name}</strong></p>
                         <p class="place-rating">⭐ ${place.rating}</p>
                     `;
-    
                     savedPlacesList.appendChild(li);
                 });
             }
     
-            // Отображение сохраненного отеля
-            if (dataHotel.savedHotel) {
-                hasData = true;
+            const responseHotel = await fetch("/get-saved-hotel");
+            const dataHotel = await responseHotel.json();
     
+            savedHotelDiv.innerHTML = "";
+    
+            if (dataHotel.savedHotel) {
                 savedHotelDiv.innerHTML = `
                     <p class="saved-hotel-name"><strong>${dataHotel.savedHotel.name}</strong></p>
                     <p class="saved-hotel-rating">⭐ ${dataHotel.savedHotel.rating || "No rating"}</p>
@@ -68,13 +55,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 `;
             }
     
-            if (hasData) {
+            if (places.length > 0 || dataHotel.savedHotel) {
                 savedDataSection.style.display = "block";
             }
         } catch (error) {
             console.error("Error loading saved data:", error);
         }
     }
+    
     
     
     loadSavedData();
@@ -85,9 +73,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (placeElement && placeElement.tagName === "LI") {
             const place = {
                 id: placeElement.dataset.placeId,
-                lat: parseFloat(placeElement.dataset.lat), // Добавляем координаты
-                lng: parseFloat(placeElement.dataset.lng)
+                lat: parseFloat(placeElement.dataset.lat),
+                lng: parseFloat(placeElement.dataset.lng),
+                name: placeElement.dataset.name || "Unknown Place",
+                rating: placeElement.dataset.rating || "No rating",
+                photo: placeElement.dataset.photo || null
             };
+            
             const index = selectedPlaces.findIndex(p => p.id === place.id);
             if (index !== -1) {
                 selectedPlaces.splice(index, 1);
@@ -128,24 +120,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Функция для получения мест через сервер
     async function getPlaces() {
-        const city = document.getElementById("city-select").value;
+        const city = citySelect.value;
         placesList.innerHTML = "<li>Loading places...</li>";
-
+    
         try {
             const response = await fetch(`/get-attractions?city=${city}`);
             const data = await response.json();
-
+    
             placesList.innerHTML = "";
             if (data.length === 0) {
                 placesList.innerHTML = "<li>No available places</li>";
                 return;
             }
-
+    
             data.forEach((place) => {
                 const li = document.createElement("li");
-
-                li.dataset.placeId = place.id; // place.id — это предполагаемый уникальный идентификатор места
-                
+    
+                li.dataset.placeId = place.id;
+                li.dataset.lat = place.location.latitude;
+                li.dataset.lng = place.location.longitude;
+                li.dataset.name = place.name;
+                li.dataset.rating = place.rating;
+                li.dataset.photo = place.photo || "";
+    
                 li.style.display = "flex";
                 li.style.flexDirection = "column";
                 li.style.alignItems = "center";
@@ -156,9 +153,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 li.style.boxShadow = "2px 2px 10px rgba(0, 0, 0, 0.1)";
                 li.style.textAlign = "center";
                 li.style.width = "200px";
-                li.style.cursor = "pointer"; // Указатель на элемент, чтобы показать интерактивность
-                
-                // Добавление фото
+                li.style.cursor = "pointer";
+    
                 if (place.photo) {
                     const img = document.createElement("img");
                     img.src = place.photo;
@@ -169,42 +165,40 @@ document.addEventListener("DOMContentLoaded", function () {
                     img.style.borderRadius = "10px";
                     li.appendChild(img);
                 }
-                
-                // Добавление названия
+    
                 const text = document.createElement("p");
                 text.textContent = place.name;
                 text.style.fontWeight = "bold";
                 text.style.margin = "10px 0 5px";
                 li.appendChild(text);
-                
-                // Добавление рейтинга (если есть)
+    
                 if (place.rating) {
                     const rating = document.createElement("p");
                     rating.textContent = `⭐ ${place.rating}`;
                     rating.style.color = "#FFD700";
                     li.appendChild(rating);
                 }
-                
+    
                 placesList.appendChild(li);
             });
-
         } catch (error) {
             console.error("Error loading places:", error);
             placesList.innerHTML = "<li>Error loading places</li>";
         }
     }
- 
+    
    
     async function getSelectedPlaceIds() {
-        try { 
+        try {
             const response = await fetch("/get-selected-places");
-            const data = await response.json();  
-            return data.selectedPlaces; // Возвращаем массив ID
+            const data = await response.json();
+            return data.selectedPlaces.map(p => p.placeId); // Вытаскиваем только placeId
         } catch (err) {
             console.error("Ошибка запроса:", err);
             return [];
         }
     }
+    
     
     async function getPlaceCoordinates(placeId) {
         try {
