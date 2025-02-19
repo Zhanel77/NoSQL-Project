@@ -70,3 +70,5 @@ This web application is designed for tourists to help them choose places to visi
 Koblandy Seipolla - [GitHub Profile](https://github.com/Koweno)
 Zhanel Kuandyk - [GitHub Profile](https://github.com/Zhanel77)
 Zhaniya Kazbekova - [GitHub Profile](https://github.com/ZhaniyaKazbekova05)
+
+
