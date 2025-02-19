@@ -232,7 +232,7 @@ document.addEventListener("DOMContentLoaded", function () {
         let count = 0;
     
         coordsArray.forEach(coords => {
-            if (coords) { // Проверяем, что coords не null
+            if (coords) {
                 centerLat += coords.lat;
                 centerLng += coords.lng;
                 count++;
@@ -249,8 +249,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
     
-        try {
-            // Отправляем запрос к серверу
+        try { 
             const response = await fetch("/get-hotels-by-coordinates", {
                 method: "POST",
                 headers: {

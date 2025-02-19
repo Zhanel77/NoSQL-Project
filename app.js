@@ -3,18 +3,15 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const fetch = require("node-fetch");
 const User = require("./models/User");
+const bcrypt = require("bcryptjs"); 
+require("dotenv").config();
 require("./db");
 const axios = require('axios') 
 
 
 const app = express();
-const PORT = 3000;
 
 
-// Google Places API
-const GOOGLE_API_KEY = "AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74"; 
-
-// Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
@@ -28,29 +25,22 @@ app.use(session({
             useUnifiedTopology: true
         }
     }),
-    cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 день
+    cookie: { maxAge: 1000 * 60 * 60 * 24 }
 }));
 
-// EJS & Static
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 
-// Городские координаты
 const CITY_COORDS = {
     almaty: { lat: 43.238949, lng: 76.889709 },
-    astana: { lat: 51.169392, lng: 71.449074 }
+    astana: { lat: 51.169392, lng: 71.449074 },
 };
 
-// Хранилище "Корзины" для каждого пользователя
 const userCarts = {};
-
-// EJS & Static
-app.set("view engine", "ejs");
-app.use(express.static("public"));
 
 app.post("/save-places", async (req, res) => {
     const { userId } = req.session;
-    const { places } = req.body; // places - это массив объектов с местами 
+    const { places } = req.body; 
     if (!userId || !places || places.length === 0) {
         return res.status(400).json({ error: "Invalid request" });
     }
@@ -60,9 +50,7 @@ app.post("/save-places", async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-
-        // Добавляем отладку
-        console.log("Selected places to save:", places);
+        // console.log("Selected places to save:", places);
 
         // Добавление мест в поле selectedPlaces пользователя
         user.selectedPlaces = places;
@@ -84,13 +72,12 @@ app.post("/get-hotels-by-coordinates", async (req, res) => {
   
     console.log(`Requesting API with coordinates: Latitude=${latitude}, Longitude=${longitude}`);
   
-    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=5000&type=lodging&key=${GOOGLE_API_KEY}`;
+    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=5000&type=lodging&key=${process.env.GOOGLE_API_KEY}`;
   
     try {
       const response = await fetch(url);
       const data = await response.json();
   
-      console.log("Response from Google Places API:", data);
   
       if (data.error_message) {
         console.error("Google Places API error:", data.error_message);
@@ -101,7 +88,7 @@ app.post("/get-hotels-by-coordinates", async (req, res) => {
         // Функция вычисления расстояния между координатами (формула Хаверсина)
         const getDistance = (lat1, lon1, lat2, lon2) => {
           const toRad = (value) => (value * Math.PI) / 180;
-          const R = 6371; // Радиус Земли в километрах
+          const R = 6371; 
           const dLat = toRad(lat2 - lat1);
           const dLon = toRad(lon2 - lon1);
           const a =
@@ -120,11 +107,10 @@ app.post("/get-hotels-by-coordinates", async (req, res) => {
             rating: hotel.rating || "No rating",
             address: hotel.vicinity,
             distance: distance.toFixed(2) + " km",
-            photo: hotel.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${hotel.photos[0].photo_reference}&key=${GOOGLE_API_KEY}` : null
+            photo: hotel.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${hotel.photos[0].photo_reference}&key=${process.env.GOOGLE_API_KEY}` : null
           };
         });
   
-        // Сортируем массив по расстоянию (самые ближние - первыми)
         hotels.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
   
         return res.json(hotels);
@@ -153,7 +139,9 @@ app.get("/get-place-coordinates", async (req, res) => {
         console.error("API request error:", error);
         res.status(500).json({ error: "Server error" });
     }
-});app.get("/get-place-details", async (req, res) => {
+});
+
+app.get("/get-place-details", async (req, res) => {
     let { placeIds } = req.query;
 
     if (!placeIds) {
@@ -167,7 +155,7 @@ app.get("/get-place-coordinates", async (req, res) => {
 
     try {
         const placeDetailsArray = await Promise.all(placeIds.map(async (placeId) => {
-            const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${GOOGLE_API_KEY}`;
+            const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${process.env.GOOGLE_API_KEY}`;
             
             try {
                 const response = await axios.get(url);
@@ -183,7 +171,7 @@ app.get("/get-place-coordinates", async (req, res) => {
                     name: place.name || "Unknown Place",
                     rating: place.rating || "No rating",
                     photo: place.photos 
-                        ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_API_KEY}` 
+                        ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${process.env.GOOGLE_API_KEY}` 
                         : null
                 };
                 
@@ -224,9 +212,6 @@ app.get("/get-selected-places", async (req, res) => {
     }
 });
 
-
-
-
 // 📌 Страница логина
 app.get("/login", (req, res) => {
     res.sendFile(__dirname + "/views/login.html");
@@ -236,8 +221,6 @@ app.get("/login", (req, res) => {
 app.get("/register", (req, res) => {
     res.sendFile(__dirname + "/views/register.html");
 });
-
-// 📌 Обработка логина
 app.post("/login", async (req, res) => {
     const { username, password } = req.body;
 
@@ -247,11 +230,13 @@ app.post("/login", async (req, res) => {
             return res.json({ success: false, message: "User not found" });
         }
 
-        if (user.password !== password) {
+        // Compare the hashed password with the provided password
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) {
             return res.json({ success: false, message: "Incorrect password" });
         }
 
-        req.session.userId = user._id; // Сохраняем ID пользователя в сессии
+        req.session.userId = user._id; 
         res.json({ success: true, redirect: "/" });
 
     } catch (error) {
@@ -260,7 +245,6 @@ app.post("/login", async (req, res) => {
     }
 });
 
-// 📌 Обработка регистрации
 app.post("/register", async (req, res) => {
     const { username, password } = req.body;
 
@@ -269,11 +253,12 @@ app.post("/register", async (req, res) => {
         if (existingUser) {
             return res.json({ success: false, message: "Username already taken" });
         }
-
-        const newUser = new User({ username, password }); // Пароль сохраняется как есть
+        // Hash the password before saving
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = new User({ username, password: hashedPassword }); // Save the hashed password
         await newUser.save();
 
-        req.session.userId = newUser._id; // Сохраняем ID пользователя в сессии
+        req.session.userId = newUser._id; // Save user ID in session
         res.json({ success: true, redirect: "/" });
 
     } catch (error) {
@@ -311,7 +296,7 @@ app.get("/get-attractions", async (req, res) => {
 
     const { lat, lng } = CITY_COORDS[city];
 
-    const url = `https://places.googleapis.com/v1/places:searchNearby?key=${GOOGLE_API_KEY}`;
+    const url = `https://places.googleapis.com/v1/places:searchNearby?key=${process.env.GOOGLE_API_KEY}`;
     const body = {
         locationRestriction: {
             circle: {
@@ -328,7 +313,7 @@ app.get("/get-attractions", async (req, res) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-Goog-Api-Key": GOOGLE_API_KEY,
+                "X-Goog-Api-Key": process.env.GOOGLE_API_KEY,
                 "X-Goog-FieldMask": "places.displayName,places.location,places.id,places.photos,places.rating"
             },
             body: JSON.stringify(body)
@@ -344,7 +329,7 @@ app.get("/get-attractions", async (req, res) => {
             id: place.id,
             name: place.displayName.text,
             rating: place.rating || "No rating",
-            photo: place.photos ? `https://places.googleapis.com/v1/${place.photos[0].name}/media?key=${GOOGLE_API_KEY}&maxWidthPx=400` : null
+            photo: place.photos ? `https://places.googleapis.com/v1/${place.photos[0].name}/media?key=${process.env.GOOGLE_API_KEY}&maxWidthPx=400` : null
         }));
 
         res.json(places);
@@ -383,7 +368,7 @@ app.get("/get-hotels", async (req, res) => {
     const places = userCarts[userId];
     const { lat, lng } = places[0].location; // Берём координаты 1-го места
 
-    const url = `https://places.googleapis.com/v1/places:searchNearby?key=${GOOGLE_API_KEY}`;
+    const url = `https://places.googleapis.com/v1/places:searchNearby?key=${process.env.GOOGLE_API_KEY}`;
     const body = {
         locationRestriction: {
             circle: {
@@ -400,7 +385,7 @@ app.get("/get-hotels", async (req, res) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-Goog-Api-Key": GOOGLE_API_KEY,
+                "X-Goog-Api-Key": process.env.GOOGLE_API_KEY,
                 "X-Goog-FieldMask": "places.displayName,places.location,places.id,places.photos,places.rating"
             },
             body: JSON.stringify(body)
@@ -415,7 +400,7 @@ app.get("/get-hotels", async (req, res) => {
         const hotels = data.places.map(hotel => ({
             name: hotel.displayName.text,
             rating: hotel.rating || "No rating",
-            photo: hotel.photos ? `https://places.googleapis.com/v1/${hotel.photos[0].name}/media?key=${GOOGLE_API_KEY}&maxWidthPx=400` : null
+            photo: hotel.photos ? `https://places.googleapis.com/v1/${hotel.photos[0].name}/media?key=${process.env.GOOGLE_API_KEY}&maxWidthPx=400` : null
         }));
 
         res.json(hotels);
@@ -424,6 +409,7 @@ app.get("/get-hotels", async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 });
+
 app.post("/save-hotel", async (req, res) => {
     const { userId } = req.session;
     const { hotel } = req.body; // hotel - это объект с информацией об отеле
@@ -468,6 +454,7 @@ app.get("/get-saved-hotel", async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 });
+
 app.get("/get-selected-places", async (req, res) => {
     const userId = req.session.userId;
     
@@ -530,6 +517,6 @@ async function getPlaceCoordinates(placeId) {
 }
 
 // 📌 Запуск сервера
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+app.listen(process.env.PORT, () => {
+    console.log(`Server running at http://localhost:${process.env.PORT}`);
 });
