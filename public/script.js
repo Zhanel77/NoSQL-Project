@@ -26,19 +26,29 @@ document.addEventListener("DOMContentLoaded", function () {
     
                 savedPlacesList.innerHTML = "";
     
-                placesData.places.forEach(place => {
-                    if (place.error) return;
-    
+                places.forEach(place => {
                     const li = document.createElement("li");
                     li.classList.add("saved-place-card");
+                
                     li.innerHTML = `
                         ${place.photo ? `<img src="${place.photo}" alt="${place.name}" class="saved-place-img">` : ""}
                         <p class="place-name"><strong>${place.name}</strong></p>
                         <p class="place-rating">⭐ ${place.rating}</p>
+                        <button class="edit-place-btn"
+                            data-id="${place._id}"
+                            data-name="${place.name}"
+                            data-rating="${place.rating}"
+                            data-photo="${place.photo}">
+                            Edit
+                        </button>
+                        <button class="delete-place-btn" data-id="${place._id}">Delete</button>
                     `;
+                
                     savedPlacesList.appendChild(li);
                 });
+                
             }
+            
     
             const responseHotel = await fetch("/get-saved-hotel");
             const dataHotel = await responseHotel.json();
@@ -52,8 +62,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     <p class="saved-hotel-address">${dataHotel.savedHotel.address}</p>
                     <p class="saved-hotel-distance">${dataHotel.savedHotel.distance}</p>
                     ${dataHotel.savedHotel.photo ? `<img src="${dataHotel.savedHotel.photo}" class="saved-hotel-img">` : ""}
+                    <button id="edit-hotel-btn" data-id="${dataHotel.savedHotel._id}">Edit Hotel</button>
+                    <button id="delete-hotel-btn" data-id="${dataHotel.savedHotel._id}">Delete Hotel</button>
                 `;
             }
+            
     
             if (places.length > 0 || dataHotel.savedHotel) {
                 savedDataSection.style.display = "block";
@@ -63,9 +76,115 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
     
-    
-    
     loadSavedData();
+
+    //NEW 
+    document.addEventListener("click", async function (e) {
+        // Удалить отель
+        if (e.target.id === "delete-hotel-btn") {
+            const hotelId = e.target.dataset.id;
+    
+            try {
+                const response = await fetch(`/delete-hotel/${hotelId}`, { method: "DELETE" });
+    
+                const data = await response.json();
+                if (data.success) {
+                    alert("Hotel deleted successfully");
+                    loadSavedData();
+                } else {
+                    alert("Failed to delete hotel");
+                }
+            } catch (error) {
+                console.error("Error deleting hotel:", error);
+            }
+        }
+    
+        // Редактировать отель
+        if (e.target.id === "edit-hotel-btn") {
+            const hotelId = e.target.dataset.id;
+            const newName = prompt("Enter new hotel name:");
+            const newRating = prompt("Enter new rating:");
+            const newAddress = prompt("Enter new address:");
+            const newDistance = prompt("Enter new distance:");
+            const newPhoto = prompt("Enter new photo URL:");
+    
+            if (newName && newRating && newAddress && newDistance && newPhoto) {
+                try {
+                    const response = await fetch(`/update-hotel/${hotelId}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name: newName, rating: newRating, address: newAddress, distance: newDistance, photo: newPhoto })
+                    });
+    
+                    const data = await response.json();
+                    if (data.success) {
+                        alert("Hotel updated successfully");
+                        loadSavedData();
+                    } else {
+                        alert("Failed to update hotel");
+                    }
+                } catch (error) {
+                    console.error("Error updating hotel:", error);
+                }
+            }
+        }
+    });
+    
+
+    //NEW 
+    document.addEventListener("click", async function (e) {
+        // Удалить место
+        if (e.target.classList.contains("delete-place-btn")) {
+            const placeId = e.target.dataset.id;
+    
+            try {
+                const response = await fetch(`/delete-place/${placeId}`, { method: "DELETE" });
+    
+                const data = await response.json();
+                if (data.success) {
+                    alert("Place deleted successfully");
+                    loadSavedData();
+                } else {
+                    alert("Failed to delete place");
+                }
+            } catch (error) {
+                console.error("Error deleting place:", error);
+            }
+        }
+    
+        // Редактировать место
+        if (e.target.classList.contains("edit-place-btn")) {
+            const placeId = e.target.dataset.id;
+            const currentName = e.target.dataset.name;
+            const currentRating = e.target.dataset.rating;
+            const currentPhoto = e.target.dataset.photo;
+    
+            const newName = prompt("Enter new name:", currentName);
+            const newRating = prompt("Enter new rating:", currentRating);
+            const newPhoto = prompt("Enter new photo URL:", currentPhoto);
+    
+            if (newName && newRating && newPhoto) {
+                try {
+                    const response = await fetch(`/update-place/${placeId}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name: newName, rating: newRating, photo: newPhoto })
+                    });
+    
+                    const data = await response.json();
+                    if (data.success) {
+                        alert("Place updated successfully");
+                        loadSavedData();
+                    } else {
+                        alert("Failed to update place");
+                    }
+                } catch (error) {
+                    console.error("Error updating place:", error);
+                }
+            }
+        }
+    });
+    
     // Добавление места в выбранные
     document.getElementById("places-list").addEventListener("click", function (e) {
         // Проверяем, был ли клик на элемент списка или его содержимое

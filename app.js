@@ -48,21 +48,26 @@ app.post("/save-places", async (req, res) => {
     }
 
     try {
+        // Можно оставить, чтобы точно все удалить
         await Place.deleteMany({ userId });
 
-        const placeDocs = places.map(place => ({
-            userId,
-            placeId: place.id,
-            name: place.name,
-            rating: place.rating,
-            photo: place.photo,
-            location: {
-                latitude: place.lat,
-                longitude: place.lng
-            }
-        }));
-
-        await Place.insertMany(placeDocs);
+        for (const place of places) {
+            await Place.findOneAndUpdate(
+                { userId, placeId: place.id },
+                {
+                    userId,
+                    placeId: place.id,
+                    name: place.name,
+                    rating: place.rating,
+                    photo: place.photo,
+                    location: {
+                        latitude: place.lat,
+                        longitude: place.lng,
+                    }
+                },
+                { upsert: true } // вставит, если нет; обновит, если есть
+            );
+        }
 
         res.json({ success: true });
     } catch (error) {
@@ -70,6 +75,7 @@ app.post("/save-places", async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 });
+
 
 app.post("/get-hotels-by-coordinates", async (req, res) => {
     const { latitude, longitude } = req.body;
@@ -208,12 +214,15 @@ app.get("/get-selected-places", async (req, res) => {
 
     try {
         const places = await Place.find({ userId });
+
         res.json({ selectedPlaces: places });
     } catch (error) {
         console.error("Error fetching places:", error);
         res.status(500).json({ error: "Server error" });
     }
 });
+
+
 
 
 // 📌 Страница логина
@@ -470,6 +479,87 @@ app.get("/get-saved-hotel", async (req, res) => {
     }
 });
 
+//UPDATE PLACE
+app.put("/update-place/:id", async (req, res) => {
+    const { id } = req.params;
+    const { name, rating, photo } = req.body;
+
+    try {
+        const updatedPlace = await Place.findByIdAndUpdate(
+            id,
+            { name, rating, photo },
+            { new: true }
+        );
+
+        if (!updatedPlace) {
+            return res.status(404).json({ error: "Place not found" });
+        }
+
+        res.json({ success: true, updatedPlace });
+    } catch (error) {
+        console.error("Error updating place:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+//DELETE PLACE
+app.delete("/delete-place/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedPlace = await Place.findByIdAndDelete(id);
+
+        if (!deletedPlace) {
+            return res.status(404).json({ error: "Place not found" });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error deleting place:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+//Update Hotel
+app.put("/update-hotel/:id", async (req, res) => {
+    const { id } = req.params;
+    const { name, rating, address, distance, photo } = req.body;
+
+    try {
+        const updatedHotel = await Hotel.findByIdAndUpdate(
+            id,
+            { name, rating, address, distance, photo },
+            { new: true }
+        );
+
+        if (!updatedHotel) {
+            return res.status(404).json({ error: "Hotel not found" });
+        }
+
+        res.json({ success: true, updatedHotel });
+    } catch (error) {
+        console.error("Error updating hotel:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+//DELETE HOTEL
+app.delete("/delete-hotel/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedHotel = await Hotel.findByIdAndDelete(id);
+
+        if (!deletedHotel) {
+            return res.status(404).json({ error: "Hotel not found" });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error deleting hotel:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
 
 async function getPlaceCoordinates(placeId) {
     const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyAh7qyCXY6ylXSSOdQFV7Xd-lBOGfSjm74`;

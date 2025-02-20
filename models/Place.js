@@ -12,6 +12,6 @@ const PlaceSchema = new mongoose.Schema({
     }
 });
 
-PlaceSchema.index({ userId: 1 });
+PlaceSchema.index({ userId: 1, placeId: 1 }, { unique: true });
 
 module.exports = mongoose.model("Place", PlaceSchema);
