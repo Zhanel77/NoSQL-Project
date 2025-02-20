@@ -6,7 +6,7 @@
     <title>Comments</title>
     <link rel="stylesheet" href="/comment.css">
 </head>
-    
+
 <body>
     <h1>Your Comments</h1>
 
@@ -18,8 +18,7 @@
     <div class="comment-container">
         <ul id="comments-list"></ul>
     </div>
-    
-    
+
     <a href="/">Back to Home</a>
 
     <script>
@@ -30,16 +29,16 @@
             commentsList.innerHTML = "";
 
             data.comments.forEach(comment => {
-            const li = document.createElement("li");
-            li.classList.add('comment-card'); // ВАЖНО!
-            li.innerHTML = `
-            <p class="comment-text">${comment.text}</p>
-            <button class="comment-button" onclick="editComment('${comment._id}', '${comment.text}')">Edit</button>
-            <button class="comment-button" onclick="deleteComment('${comment._id}')">Delete</button>
-            `;
-            commentsList.appendChild(li);
-        });
-    }
+                const li = document.createElement("li");
+                li.classList.add('comment-card');
+                li.innerHTML = `
+                    <p class="comment-text">${comment.text}</p>
+                    <button class="comment-button" onclick="editComment('${comment._id}', '${comment.text}')">Edit</button>
+                    <button class="comment-button" onclick="deleteComment('${comment._id}')">Delete</button>
+                `;
+                commentsList.appendChild(li);
+            });
+        }
 
         async function createComment(e) {
             e.preventDefault();
@@ -81,4 +80,3 @@
     </script>
 </body>
 </html>
-

@@ -1,38 +1,96 @@
-.comment-container ul {
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 20px;
+    color: #333;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 15px;
+}
+
+textarea {
+    width: 300px;
+    height: 80px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: #ffffff;
+}
+
+button {
+    margin-top: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.comment-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px; /* Отступы между комментариями */
-    padding: 0;
-    list-style: none;
+    gap: 15px;
+    justify-content: center;
     margin-top: 20px;
 }
 
 .comment-container li {
     background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 15px;
     text-align: center;
-    width: 220px; /* Ширина карточки */
+    width: 220px;
+    list-style-type: none;
 }
 
-.comment-container p {
-    margin-bottom: 10px;
+.comment-text {
     font-size: 16px;
+    margin-bottom: 10px;
+    color: #333;
 }
 
-.comment-container button {
-    width: 100%;
-    margin-top: 5px;
+.comment-button {
     background-color: #007bff;
     color: white;
     border: none;
     padding: 8px;
-    border-radius: 8px;
+    margin-top: 5px;
     cursor: pointer;
-    font-size: 14px;
+    border-radius: 5px;
+    width: 100%;
 }
 
-.comment-container button:hover {
+.comment-button:hover {
     background-color: #0056b3;
+}
+
+a {
+    display: block;
+    margin-top: 15px;
+    text-align: center;
+    text-decoration: none;
+    color: #007bff;
+}
+
+a:hover {
+    text-decoration: underline;
 }
