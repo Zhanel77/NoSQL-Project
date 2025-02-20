@@ -9,6 +9,8 @@ require("./db");
 const axios = require('axios') 
 const Place = require("./models/Place");
 const Hotel = require("./models/Hotel");
+const Comment = require("./models/Comment");
+
 
 const app = express();
 
@@ -222,8 +224,83 @@ app.get("/get-selected-places", async (req, res) => {
     }
 });
 
+//Comment
+app.get("/comments-page", (req, res) => {
+    if (!req.session.userId) return res.redirect("/login");
+    res.render("comments");
+  });
 
-
+  
+app.get("/comments", async (req, res) => {
+    const { userId } = req.session;
+  
+    if (!userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+  
+    try {
+      const comments = await Comment.find({ userId });
+      res.json({ comments });
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+  app.post("/comments", async (req, res) => {
+    const { userId } = req.session;
+    const { text } = req.body;
+  
+    if (!userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+  
+    try {
+      const comment = new Comment({ userId, text });
+      await comment.save();
+      res.json({ success: true, comment });
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+  app.put("/comments/:id", async (req, res) => {
+    const { id } = req.params;
+    const { text } = req.body;
+  
+    try {
+      const updatedComment = await Comment.findByIdAndUpdate(
+        id,
+        { text },
+        { new: true }
+      );
+  
+      if (!updatedComment) {
+        return res.status(404).json({ error: "Comment not found" });
+      }
+  
+      res.json({ success: true, updatedComment });
+    } catch (error) {
+      console.error("Error updating comment:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+  app.delete("/comments/:id", async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const deletedComment = await Comment.findByIdAndDelete(id);
+  
+      if (!deletedComment) {
+        return res.status(404).json({ error: "Comment not found" });
+      }
+  
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+        
 
 // 📌 Страница логина
 app.get("/login", (req, res) => {

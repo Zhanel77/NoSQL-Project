@@ -212,6 +212,13 @@ Updates a saved hotel for the logged-in user.
 #### DELETE `/delete-hotel/:id`
 Deletes a saved hotel for the logged-in user.
 
+
+## Deploy
+```bash
+
+https://nosql-project-axsj.onrender.com 
+
+``` 
 ## Authors
 Zhanel Kuandyk - [GitHub Profile](https://github.com/Zhanel77)
 Zhaniya Kazbekova - [GitHub Profile](https://github.com/ZhaniyaKazbekova05)

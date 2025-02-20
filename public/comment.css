@@ -1,0 +1,38 @@
+.comment-container ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Отступы между комментариями */
+    padding: 0;
+    list-style: none;
+    margin-top: 20px;
+}
+
+.comment-container li {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    text-align: center;
+    width: 220px; /* Ширина карточки */
+}
+
+.comment-container p {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.comment-container button {
+    width: 100%;
+    margin-top: 5px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.comment-container button:hover {
+    background-color: #0056b3;
+}
