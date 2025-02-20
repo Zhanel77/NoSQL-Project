@@ -9,6 +9,7 @@ This is a web application designed to help tourists choose places to visit in a 
 - Viewing tourist attractions
 - Selecting and saving places
 - Finding and saving nearby hotels
+- Updating and deleting saved places and hotels
 
 ## Technologies Used
 - Node.js
@@ -17,7 +18,7 @@ This is a web application designed to help tourists choose places to visit in a 
 - Google Places API
 - EJS for templating
 - HTML, CSS, JavaScript
-- Google Places API 
+- Google Places API
 
 ## Project Structure
 ```
@@ -172,6 +173,11 @@ Gets detailed information about places by IDs.
 #### GET `/get-place-coordinates?placeId=place-id`
 Gets coordinates of a place by its ID.
 
+#### PUT `/update-place/:id`
+Updates a saved place for the logged-in user.
+
+#### DELETE `/delete-place/:id`
+Deletes a saved place for the logged-in user.
 
 ### Hotels
 #### POST `/get-hotels-by-coordinates`
@@ -200,6 +206,11 @@ Saves a selected hotel for the logged-in user.
 #### GET `/get-saved-hotel`
 Gets the saved hotel for the logged-in user.
 
+#### PUT `/update-hotel/:id`
+Updates a saved hotel for the logged-in user.
+
+#### DELETE `/delete-hotel/:id`
+Deletes a saved hotel for the logged-in user.
 
 ## Authors
 Zhanel Kuandyk - [GitHub Profile](https://github.com/Zhanel77)
