@@ -9,7 +9,7 @@ This is a web application designed to help tourists choose places to visit in a 
 - Viewing tourist attractions
 - Selecting and saving places
 - Finding and saving nearby hotels
-- Updating and deleting saved places and hotels
+- Commenting system (add, edit, delete comments)
 
 ## Technologies Used
 - Node.js
@@ -25,15 +25,18 @@ This is a web application designed to help tourists choose places to visit in a 
 ├── models
 │   ├── User.js       
 |   |── Place.js
-|   |── Hotel.js       # Details of users collection
+|   |── Hotel.js
+|   |── Comment.js    # Details of comments collection
 ├── public
 │   ├── logstyle.css   # CSS file for login and registration
-│   ├── styles.css     # CSS file for styling
+│   ├── styles.css     # CSS file for general styling
+│   ├── comment.css    # CSS file for comments page
 │   ├── script.js      # Client-side JavaScript
 ├── views
 │   ├── index.ejs      # Main frontend template
 │   ├── login.html     # Login page
 │   ├── register.html  # Sign up page
+│   ├── comments.ejs   # Comments page
 ├── app.js             # Main server file
 ├── db.js              # MongoDB configuration
 ├── package.json       # Project dependencies
@@ -117,6 +120,16 @@ Make sure you have the following installed:
 }
 ```
 
+### Comments Collection
+```js
+{
+  _id: ObjectId,
+  userId: ObjectId,
+  text: String,
+  createdAt: Date
+}
+```
+
 ## API Endpoints
 
 ### Authentication
@@ -170,15 +183,6 @@ Gets saved places for the logged-in user.
 #### GET `/get-place-details?placeIds=place-id1&placeIds=place-id2`
 Gets detailed information about places by IDs.
 
-#### GET `/get-place-coordinates?placeId=place-id`
-Gets coordinates of a place by its ID.
-
-#### PUT `/update-place/:id`
-Updates a saved place for the logged-in user.
-
-#### DELETE `/delete-place/:id`
-Deletes a saved place for the logged-in user.
-
 ### Hotels
 #### POST `/get-hotels-by-coordinates`
 Finds hotels near specified coordinates.
@@ -203,22 +207,29 @@ Saves a selected hotel for the logged-in user.
 }
 ```
 
-#### GET `/get-saved-hotel`
-Gets the saved hotel for the logged-in user.
+## Comments
+#### GET `/comments`
+Fetches all comments for the logged-in user.
 
-#### PUT `/update-hotel/:id`
-Updates a saved hotel for the logged-in user.
+#### POST `/comments`
+Creates a new comment.
+```json
+{
+  "text": "This is a comment"
+}
+```
 
-#### DELETE `/delete-hotel/:id`
-Deletes a saved hotel for the logged-in user.
+#### PUT `/comments/:id`
+Updates a comment by ID.
 
+#### DELETE `/comments/:id`
+Deletes a comment by ID.
 
 ## Deploy
 ```bash
+https://nosql-project-axsj.onrender.com
+```
 
-https://nosql-project-axsj.onrender.com 
-
-``` 
 ## Authors
 Zhanel Kuandyk - [GitHub Profile](https://github.com/Zhanel77)
 Zhaniya Kazbekova - [GitHub Profile](https://github.com/ZhaniyaKazbekova05)
