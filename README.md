@@ -231,6 +231,8 @@ https://nosql-project-axsj.onrender.com
 ```
 
 ## Authors
-Zhanel Kuandyk - [GitHub Profile](https://github.com/Zhanel77)
-Zhaniya Kazbekova - [GitHub Profile](https://github.com/ZhaniyaKazbekova05)
+Zhanel Kuandyk 
+Zhaniya Kazbekova 
 
+## Github url
+https://github.com/Zhanel77/NoSQL-Project.git
