@@ -50,7 +50,7 @@ app.post("/save-places", async (req, res) => {
     }
 
     try {
-        // Можно оставить, чтобы точно все удалить
+        
         await Place.deleteMany({ userId });
 
         for (const place of places) {
@@ -67,7 +67,7 @@ app.post("/save-places", async (req, res) => {
                         longitude: place.lng,
                     }
                 },
-                { upsert: true } // вставит, если нет; обновит, если есть
+                { upsert: true } 
             );
         }
 
@@ -164,7 +164,6 @@ app.get("/get-place-details", async (req, res) => {
         return res.status(400).json({ error: "No place IDs provided." });
     }
 
-    // Если placeIds - строка (один ID), превращаем в массив
     if (!Array.isArray(placeIds)) {
         placeIds = [placeIds];
     }
@@ -203,8 +202,6 @@ app.get("/get-place-details", async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 });
-
-
 
 
 app.get("/get-selected-places", async (req, res) => {
@@ -246,7 +243,8 @@ app.get("/comments", async (req, res) => {
       res.status(500).json({ error: "Server error" });
     }
   });
-  app.post("/comments", async (req, res) => {
+
+app.post("/comments", async (req, res) => {
     const { userId } = req.session;
     const { text } = req.body;
   
@@ -263,7 +261,8 @@ app.get("/comments", async (req, res) => {
       res.status(500).json({ error: "Server error" });
     }
   });
-  app.put("/comments/:id", async (req, res) => {
+
+app.put("/comments/:id", async (req, res) => {
     const { id } = req.params;
     const { text } = req.body;
   
@@ -284,7 +283,8 @@ app.get("/comments", async (req, res) => {
       res.status(500).json({ error: "Server error" });
     }
   });
-  app.delete("/comments/:id", async (req, res) => {
+
+app.delete("/comments/:id", async (req, res) => {
     const { id } = req.params;
   
     try {
@@ -302,15 +302,16 @@ app.get("/comments", async (req, res) => {
   });
         
 
-// 📌 Страница логина
+//  Страница логина
 app.get("/login", (req, res) => {
     res.sendFile(__dirname + "/views/login.html");
 });
 
-// 📌 Страница регистрации
+// Страница регистрации
 app.get("/register", (req, res) => {
     res.sendFile(__dirname + "/views/register.html");
 });
+
 app.post("/login", async (req, res) => {
     const { username, password } = req.body;
 
@@ -357,14 +358,14 @@ app.post("/register", async (req, res) => {
     }
 });
 
-// 📌 Выход из аккаунта
+//  Выход из аккаунта
 app.get("/logout", (req, res) => {
     req.session.destroy(() => {
         res.redirect("/login");
     });
 });
 
-// 📌 Главная страница
+// Главная страница
 app.get("/", async (req, res) => {
     if (!req.session.userId) return res.redirect("/login");
 
@@ -377,7 +378,7 @@ app.get("/", async (req, res) => {
     res.render("index", { user });
 });
 
-// 📌 API: Получение достопримечательностей с фото
+//  API: Получение достопримечательностей с фото
 app.get("/get-attractions", async (req, res) => {
     const city = req.query.city;
     if (!CITY_COORDS[city]) {
